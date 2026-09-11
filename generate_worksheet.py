@@ -4,6 +4,11 @@
 word problem — modelled on the difficulty/format of a real P1 2nd-term
 school test (see mvp/test2_answer_key.json for the reference paper).
 
+Content is in plain, simple English (a P1 HK pupil reading level) for
+now, and the layout is styled to look like a real school test paper
+(name/class/date/score header, numbered sections with mark weightings)
+rather than a bare list of questions.
+
 Each run produces a unique worksheet_id, a printable HTML file, and a
 JSON answer key saved under worksheets/<worksheet_id>/ so the grading
 step can look up the correct answers for that specific sheet later.
@@ -11,7 +16,6 @@ step can look up the correct answers for that specific sheet later.
 import json
 import random
 import string
-import sys
 from pathlib import Path
 
 HERE = Path(__file__).parent
@@ -22,8 +26,8 @@ def rand_id(n=6):
     return "".join(random.choices(string.ascii_uppercase + string.digits, k=n))
 
 
-def gen_add_sub(regroup=True):
-    """One horizontal 2-digit +/- question with a plain-language answer."""
+def gen_add_sub():
+    """One horizontal 2-digit +/- question."""
     op = random.choice(["+", "-"])
     if op == "+":
         a = random.randint(10, 69)
@@ -58,20 +62,20 @@ def gen_missing_digit_sub():
 
 
 def gen_word_problem():
-    name = random.choice(["小明", "小美", "媽媽", "哥哥"])
+    name = random.choice(["Tom", "Mary", "Peter", "Ann"])
     kind = random.choice(["add_stickers", "add_pencils", "sub_sweets"])
     if kind == "add_stickers":
         a, b = random.randint(20, 60), random.randint(10, 40)
-        text = f"{name}有{a}張貼紙,又買咗{b}張,而家一共有幾多張貼紙?"
+        text = f"{name} has {a} stickers. {name} buys {b} more stickers. How many stickers does {name} have now?"
         answer = a + b
     elif kind == "add_pencils":
         a, b = random.randint(20, 60), random.randint(10, 40)
-        text = f"文具店昨天賣出鉛筆{a}支,今天再賣出{b}支,呢兩日一共賣出幾多支鉛筆?"
+        text = f"A shop sold {a} pencils yesterday. It sold {b} more pencils today. How many pencils were sold in total?"
         answer = a + b
     else:
         a = random.randint(30, 70)
         b = random.randint(10, a - 5)
-        text = f"{name}有{a}粒糖,食咗{b}粒,仲剩返幾多粒?"
+        text = f"{name} has {a} sweets. {name} eats {b} of them. How many sweets are left?"
         answer = a - b
     return {"type": "word_problem", "text": text, "answer": str(answer)}
 
@@ -87,63 +91,101 @@ def generate_worksheet():
 
 
 def render_html(worksheet_id, questions):
-    rows = []
+    section1_rows = []
+    section2_rows = []
+    section3_rows = []
     n = 1
     for q in questions:
-        if q["type"] in ("equation", "word_problem"):
-            rows.append(f"""
-      <div class="q">
-        <div class="q-text"><span class="q-num">{n}.</span> {q['text']}</div>
-        <div class="ans-line"></div>
-      </div>""")
-        elif q["type"] == "missing_digit_sub":
-            rows.append(f"""
-      <div class="q">
-        <div class="q-text"><span class="q-num">{n}.</span> 喺方格內填上數字</div>
-        <div class="vertical-sum">
-          <div class="row"><span class="box"></span><span class="digit">8</span></div>
-          <div class="row"><span class="op">-</span><span class="digit">3</span><span class="box"></span></div>
-          <div class="line"></div>
-          <div class="row result">{q['result']:02d}</div>
-        </div>
-      </div>""")
-        n += 1
+        if q["type"] == "equation":
+            section1_rows.append(f"""
+        <div class="q">
+          <div class="q-text"><span class="q-num">{n}.</span> {q['text']}</div>
+          <div class="ans-line"></div>
+        </div>""")
+            n += 1
+    for q in questions:
+        if q["type"] == "missing_digit_sub":
+            section2_rows.append(f"""
+        <div class="q">
+          <div class="q-label"><span class="q-num">{n}.</span></div>
+          <div class="vertical-sum">
+            <div class="row"><span class="box"></span><span class="digit">8</span></div>
+            <div class="row"><span class="op">-</span><span class="digit">3</span><span class="box"></span></div>
+            <div class="line"></div>
+            <div class="row result">{q['result']:02d}</div>
+          </div>
+        </div>""")
+            n += 1
+    for q in questions:
+        if q["type"] == "word_problem":
+            section3_rows.append(f"""
+        <div class="q wide">
+          <div class="q-text"><span class="q-num">{n}.</span> {q['text']}</div>
+          <div class="ans-line wide"></div>
+        </div>""")
+            n += 1
+
+    total_marks = len(questions)
     html = f"""<!doctype html>
-<html lang="zh-HK">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<title>P1 數學工作紙 — {worksheet_id}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P1 Maths Worksheet — {worksheet_id}</title>
 <style>
-  body{{font-family:"Noto Sans HK","PingFang HK",sans-serif; max-width:700px; margin:24px auto; color:#111;}}
-  header{{text-align:center; margin-bottom:20px;}}
-  header h1{{font-size:1.3rem; margin:0 0 4px;}}
-  header .sub{{font-size:.85rem; color:#666;}}
-  .q{{margin-bottom:26px; page-break-inside:avoid;}}
-  .q-text{{font-size:1.05rem; margin-bottom:8px;}}
+  body{{font-family:Arial,Helvetica,sans-serif; max-width:720px; margin:20px auto; color:#111; padding:0 16px;}}
+  .paper-title{{text-align:center; font-size:1.15rem; font-weight:700; margin-bottom:2px;}}
+  .paper-sub{{text-align:center; font-size:.82rem; color:#555; margin-bottom:14px;}}
+  table.header-table{{width:100%; border-collapse:collapse; font-size:.85rem; margin-bottom:18px;}}
+  table.header-table td{{border:1px solid #333; padding:6px 8px;}}
+  .section-title{{font-weight:700; font-size:.95rem; margin:22px 0 10px; border-bottom:2px solid #333; padding-bottom:4px;}}
+  .q{{margin-bottom:22px; page-break-inside:avoid;}}
+  .q-text{{font-size:1rem; margin-bottom:8px;}}
   .q-num{{font-weight:700; margin-right:4px;}}
-  .ans-line{{border-bottom:1px solid #333; width:220px; height:28px;}}
-  .vertical-sum{{font-size:1.1rem; font-family:monospace; width:120px;}}
+  .ans-line{{border-bottom:1px solid #333; width:180px; height:26px; display:inline-block;}}
+  .ans-line.wide{{width:100%; max-width:420px; display:block;}}
+  .section2-grid{{display:flex; flex-wrap:wrap; gap:28px;}}
+  .section2-grid .q{{display:flex; align-items:center; gap:10px;}}
+  .vertical-sum{{font-size:1.05rem; font-family:"Courier New",monospace; width:110px;}}
   .vertical-sum .row{{display:flex; justify-content:flex-end; gap:6px;}}
-  .vertical-sum .box{{display:inline-block; width:22px; height:22px; border:1px solid #333;}}
+  .vertical-sum .box{{display:inline-block; width:22px; height:22px; border:1.5px solid #333;}}
   .vertical-sum .digit{{display:inline-block; width:22px; text-align:center;}}
   .vertical-sum .op{{width:22px; text-align:center;}}
-  .vertical-sum .line{{border-top:1px solid #333; margin:4px 0;}}
+  .vertical-sum .line{{border-top:1.5px solid #333; margin:4px 0;}}
   .vertical-sum .result{{justify-content:flex-end; font-weight:700;}}
-  footer{{margin-top:30px; font-size:.72rem; color:#999; text-align:center;}}
+  .footnote{{margin-top:30px; font-size:.75rem; color:#888; text-align:center; border-top:1px dashed #ccc; padding-top:10px;}}
   @media print {{ .no-print{{display:none;}} }}
 </style>
 </head>
 <body>
-  <header>
-    <h1>小一數學工作紙</h1>
-    <div class="sub">工作紙編號: {worksheet_id}</div>
-  </header>
-  <div class="questions">
-    {''.join(rows)}
+  <div class="paper-title">Primary 1 Mathematics — Practice Worksheet</div>
+  <div class="paper-sub">Worksheet ID: {worksheet_id}</div>
+  <table class="header-table">
+    <tr>
+      <td style="width:40%;">Name: ________________</td>
+      <td style="width:30%;">Class: ______ ( ___ )</td>
+      <td style="width:30%;">Score: _____ / {total_marks}</td>
+    </tr>
+  </table>
+
+  <div class="section-title">(1) Work out the answers.</div>
+  <div class="section1">
+    {''.join(section1_rows)}
   </div>
-  <footer>做完影相send返嚟就得,唔使填名/唔使剪裁,淨係影清楚啲。</footer>
+
+  <div class="section-title">(2) Fill in the missing digits.</div>
+  <div class="section2-grid">
+    {''.join(section2_rows)}
+  </div>
+
+  <div class="section-title">(3) Word problem.</div>
+  <div class="section3">
+    {''.join(section3_rows)}
+  </div>
+
+  <div class="footnote">Done? Take one clear photo of this whole page and send it back — no need to check the answers yourself.</div>
   <div class="no-print" style="text-align:center; margin-top:20px;">
-    <button onclick="window.print()">打印 / 存做 PDF</button>
+    <button onclick="window.print()">Print / Save as PDF</button>
   </div>
 </body>
 </html>"""
