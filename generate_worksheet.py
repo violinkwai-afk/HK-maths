@@ -134,23 +134,21 @@ def render_html(worksheet_id, questions):
 <title>P1 Maths Worksheet — {worksheet_id}</title>
 <style>
   body{{font-family:Arial,Helvetica,sans-serif; max-width:720px; margin:20px auto; color:#111; padding:0 16px;}}
-  .paper-title{{text-align:center; font-size:1.15rem; font-weight:700; margin-bottom:2px;}}
-  .paper-sub{{text-align:center; font-size:.82rem; color:#555; margin-bottom:14px;}}
-  table.header-table{{width:100%; border-collapse:collapse; font-size:.85rem; margin-bottom:18px;}}
-  table.header-table td{{border:1px solid #333; padding:6px 8px;}}
-  .section-title{{font-weight:700; font-size:.95rem; margin:22px 0 10px; border-bottom:2px solid #333; padding-bottom:4px;}}
-  .q{{margin-bottom:22px; page-break-inside:avoid;}}
-  .q-text{{font-size:1rem; margin-bottom:8px;}}
+  .paper-title{{text-align:center; font-size:1.3rem; font-weight:700; margin-bottom:2px;}}
+  .paper-sub{{text-align:center; font-size:.8rem; color:#888; margin-bottom:18px;}}
+  .section-title{{font-weight:700; font-size:1.15rem; margin:26px 0 12px; border-bottom:2px solid #333; padding-bottom:4px;}}
+  .q{{margin-bottom:26px; page-break-inside:avoid;}}
+  .q-text{{font-size:1.3rem; margin-bottom:10px;}}
   .q-num{{font-weight:700; margin-right:4px;}}
   .ans-line{{border-bottom:1px solid #333; width:180px; height:26px; display:inline-block;}}
   .ans-line.wide{{width:100%; max-width:420px; display:block;}}
   .section2-grid{{display:flex; flex-wrap:wrap; gap:28px;}}
   .section2-grid .q{{display:flex; align-items:center; gap:10px;}}
-  .vertical-sum{{font-size:1.05rem; font-family:"Courier New",monospace; width:110px;}}
+  .vertical-sum{{font-size:1.3rem; font-family:"Courier New",monospace; width:130px;}}
   .vertical-sum .row{{display:flex; justify-content:flex-end; gap:6px;}}
-  .vertical-sum .box{{display:inline-block; width:22px; height:22px; border:1.5px solid #333;}}
-  .vertical-sum .digit{{display:inline-block; width:22px; text-align:center;}}
-  .vertical-sum .op{{width:22px; text-align:center;}}
+  .vertical-sum .box{{display:inline-block; width:28px; height:28px; border:1.5px solid #333;}}
+  .vertical-sum .digit{{display:inline-block; width:28px; text-align:center;}}
+  .vertical-sum .op{{width:28px; text-align:center;}}
   .vertical-sum .line{{border-top:1.5px solid #333; margin:4px 0;}}
   .vertical-sum .result{{justify-content:flex-end; font-weight:700;}}
   .footnote{{margin-top:30px; font-size:.75rem; color:#888; text-align:center; border-top:1px dashed #ccc; padding-top:10px;}}
@@ -158,15 +156,8 @@ def render_html(worksheet_id, questions):
 </style>
 </head>
 <body>
-  <div class="paper-title">Primary 1 Mathematics — Practice Worksheet</div>
+  <div class="paper-title">Primary 1 Maths Practice</div>
   <div class="paper-sub">Worksheet ID: {worksheet_id}</div>
-  <table class="header-table">
-    <tr>
-      <td style="width:40%;">Name: ________________</td>
-      <td style="width:30%;">Class: ______ ( ___ )</td>
-      <td style="width:30%;">Score: _____ / {total_marks}</td>
-    </tr>
-  </table>
 
   <div class="section-title">(1) Work out the answers.</div>
   <div class="section1">
