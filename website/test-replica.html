@@ -19,17 +19,19 @@
   .section-title{font-weight:700; font-size:.92rem; margin:16px 0 10px; padding-bottom:4px; border-bottom:2px solid var(--line);}
   .section-title:first-of-type{margin-top:0;}
   .section1-grid{display:grid; grid-template-columns:1fr 1fr; column-gap:18px;}
-  .q{margin-bottom:12px;}
-  .q-text{font-size:.98rem; margin-bottom:4px; line-height:1.35; font-variant-numeric:tabular-nums;}
+  .q{margin-bottom:14px;}
+  .q-text{font-size:.98rem; margin-bottom:6px; line-height:1.35; font-variant-numeric:tabular-nums; white-space:nowrap;}
   .q-num{font-weight:700; margin-right:3px; color:var(--accent-ink);}
-  .ans-line{border-bottom:1.5px solid var(--line); width:90px; height:20px; display:inline-block;}
+  .ans-line{border-bottom:1.5px solid var(--line); width:90px; height:24px; display:inline-block; vertical-align:middle;}
+  .ans-line-end{border-bottom:1.5px solid var(--line); width:100%; max-width:160px; height:32px; display:block; margin-top:2px;}
   .mc-opts{display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; margin-top:6px; font-size:.92rem;}
-  .vertical-sum{font-size:1.05rem; font-family:"Courier New",monospace; width:118px; font-variant-numeric:tabular-nums; display:inline-block; vertical-align:middle; margin-left:10px;}
-  .vertical-sum .row{display:flex; justify-content:flex-end; gap:5px;}
-  .vertical-sum .box{display:inline-block; width:22px; height:22px; border:1.5px solid var(--line); border-radius:3px;}
-  .vertical-sum .digit{display:inline-block; width:22px; text-align:center;}
-  .vertical-sum .op{width:22px; text-align:center;}
-  .vertical-sum .line{border-top:1.5px solid var(--line); margin:3px 0;}
+  .section2-grid .q{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+  .vertical-sum{font-size:1.15rem; font-family:"Courier New",monospace; width:130px; font-variant-numeric:tabular-nums; margin-left:auto;}
+  .vertical-sum .row{display:flex; justify-content:flex-end; gap:6px;}
+  .vertical-sum .box{display:inline-block; width:30px; height:30px; border:1.5px solid var(--line); border-radius:4px;}
+  .vertical-sum .digit{display:inline-block; width:30px; text-align:center;}
+  .vertical-sum .op{width:30px; text-align:center;}
+  .vertical-sum .line{border-top:1.5px solid var(--line); margin:4px 0;}
   .vertical-sum .result{justify-content:flex-end; font-weight:700;}
   .price-table{width:100%; border-collapse:collapse; margin:10px 0; font-size:.85rem;}
   .price-table th,.price-table td{border:1.5px solid var(--line); padding:6px; text-align:center;}
@@ -66,19 +68,19 @@ function build(){
   // Q1-Q2: two-digit + two-digit
   for(let i=0;i<2;i++){
     const a = ri(10,69), b = ri(10,99-a);
-    rows1.push(row(n, `${a} + ${b} =`, `<span class="ans-line"></span>`));
+    rows1.push(row(n, `${a} + ${b} =`, `<span class="ans-line-end"></span>`));
     ans.push(`${n}. ${a} + ${b} = <b>${a+b}</b>`); n++;
   }
   // Q3: three-term addition
   {
     const a = ri(1,9), b = ri(10,40), c = ri(10,40);
-    rows1.push(row(n, `${a} + ${b} + ${c} =`, `<span class="ans-line"></span>`));
+    rows1.push(row(n, `${a} + ${b} + ${c} =`, `<span class="ans-line-end"></span>`));
     ans.push(`${n}. ${a} + ${b} + ${c} = <b>${a+b+c}</b>`); n++;
   }
   // Q4: two-digit subtraction
   {
     const a = ri(40,90), b = ri(10,a-1);
-    rows1.push(row(n, `${a} - ${b} =`, `<span class="ans-line"></span>`));
+    rows1.push(row(n, `${a} - ${b} =`, `<span class="ans-line-end"></span>`));
     ans.push(`${n}. ${a} - ${b} = <b>${a-b}</b>`); n++;
   }
   // Q5: find the minuend, ___ - a = b
@@ -201,13 +203,13 @@ function buildWordProblems(startN, ans){
   {
     const yesterday = ri(20,50), today = ri(15,40);
     out.push(`<div class="q"><div class="q-text"><span class="q-num">${n}.</span> A shop sold ${yesterday} pencils yesterday, and ${today} more pencils today. How many pencils were sold in these two days in total?</div>
-      <span class="ans-line" style="width:220px;"></span> <span class="workbox">Working</span></div>`);
+      <span class="ans-line-end"></span> <span class="workbox">Working</span></div>`);
     ans.push(`${n}. ${yesterday} + ${today} = <b>${yesterday+today}</b>`); n++;
   }
   {
     const sweets = ri(40,70), candy = ri(10,35), choc = ri(10, sweets-5>35?35:sweets-5);
     out.push(`<div class="q"><div class="q-text"><span class="q-num">${n}.</span> Mum has ${sweets} sweets, ${candy} candies, and ${choc} chocolates. How many more sweets than chocolates does Mum have?</div>
-      <span class="ans-line" style="width:220px;"></span> <span class="workbox">Working</span></div>`);
+      <span class="ans-line-end"></span> <span class="workbox">Working</span></div>`);
     ans.push(`${n}. ${sweets} - ${choc} = <b>${sweets-choc}</b>`); n++;
   }
   return out.join('');
