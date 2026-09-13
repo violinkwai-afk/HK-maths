@@ -1,0 +1,226 @@
+<title>P1 Second-Term Maths Test</title>
+<style>
+  :root{ --bg:#faf7f0; --card:#ffffff; --ink:#2b2620; --muted:#8a8172; --border:#e8e1d2; --accent:#2e9e93; --accent-ink:#0b3d38; --accent-soft:#e3f4f1; --line:#3a332a; }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){ --bg:#1c1a16; --card:#26231d; --ink:#f0ece1; --muted:#a89f8d; --border:#3a352c; --accent:#5ec4b8; --accent-ink:#dff5f2; --accent-soft:#233631; --line:#e8e1d2; }
+  }
+  :root[data-theme="dark"]{ --bg:#1c1a16; --card:#26231d; --ink:#f0ece1; --muted:#a89f8d; --border:#3a352c; --accent:#5ec4b8; --accent-ink:#dff5f2; --accent-soft:#233631; --line:#e8e1d2; }
+  *{box-sizing:border-box;}
+  body{background:var(--bg); color:var(--ink); font-family:-apple-system,"Segoe UI",Arial,sans-serif; max-width:720px; margin:0 auto; padding-inline:16px; padding-block:24px;}
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;}
+  button{font-family:inherit; font-size:.95rem; font-weight:700; padding:12px 18px; border-radius:10px; border:1px solid transparent; cursor:pointer;}
+  #genBtn{background:var(--accent); color:#fff;}
+  #printBtn{background:var(--ink); color:var(--bg);}
+  #answerBtn{background:transparent; color:var(--ink); border-color:var(--border);}
+  .sheet{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:26px 22px;}
+  .paper-title{text-align:center; font-size:1.1rem; font-weight:700; margin:0 0 2px;}
+  .paper-sub2{text-align:center; font-size:.85rem; color:var(--muted); margin-bottom:4px;}
+  .paper-sub{text-align:center; font-size:.78rem; color:var(--muted); margin-bottom:18px; letter-spacing:.02em;}
+  .section-title{font-weight:700; font-size:1rem; margin:24px 0 14px; padding-bottom:6px; border-bottom:2px solid var(--line);}
+  .section-title:first-of-type{margin-top:0;}
+  .q{margin-bottom:22px;}
+  .q-text{font-size:1.15rem; margin-bottom:8px; line-height:1.5; font-variant-numeric:tabular-nums;}
+  .q-num{font-weight:700; margin-right:4px; color:var(--accent-ink);}
+  .ans-line{border-bottom:1.5px solid var(--line); width:110px; height:24px; display:inline-block;}
+  .mc-opts{display:grid; grid-template-columns:1fr 1fr; gap:6px 20px; margin-top:8px; font-size:1.05rem;}
+  .vertical-sum{font-size:1.2rem; font-family:"Courier New",monospace; width:130px; font-variant-numeric:tabular-nums; display:inline-block; vertical-align:middle; margin-left:14px;}
+  .vertical-sum .row{display:flex; justify-content:flex-end; gap:6px;}
+  .vertical-sum .box{display:inline-block; width:26px; height:26px; border:1.5px solid var(--line); border-radius:3px;}
+  .vertical-sum .digit{display:inline-block; width:26px; text-align:center;}
+  .vertical-sum .op{width:26px; text-align:center;}
+  .vertical-sum .line{border-top:1.5px solid var(--line); margin:4px 0;}
+  .vertical-sum .result{justify-content:flex-end; font-weight:700;}
+  .price-table{width:100%; border-collapse:collapse; margin:14px 0; font-size:.95rem;}
+  .price-table th,.price-table td{border:1.5px solid var(--line); padding:10px; text-align:center;}
+  .price-table img{width:52px; height:52px;}
+  .price-table .price{font-weight:700;}
+  .workbox{display:inline-block; border:1.5px solid var(--line); border-radius:6px; width:150px; height:90px; vertical-align:top; margin-left:14px; padding:6px; font-size:.75rem; color:var(--muted);}
+  .footnote{margin-top:26px; font-size:.75rem; color:var(--muted); text-align:center; border-top:1px dashed var(--border); padding-top:12px;}
+  #answerBox{display:none; margin-top:16px; padding:16px 18px; background:var(--accent-soft); border:1px solid var(--accent); border-radius:12px; font-size:.88rem;}
+  #answerBox ol{margin:8px 0 0; padding-left:20px; line-height:1.8;}
+  @media print { .no-print{display:none;} .sheet{border:none; padding:0;} body{background:#fff;} }
+</style>
+
+<div class="toolbar no-print">
+  <button id="genBtn">🔄 New test</button>
+  <button id="printBtn">🖨️ Print / Save as PDF</button>
+  <button id="answerBtn">🔑 Answer key</button>
+</div>
+
+<div class="sheet" id="sheet"></div>
+<div id="answerBox"></div>
+
+<script>
+const ROBOT_SVG = "data:image/svg+xml;base64,PHN2ZyBpZD0iZW1vamkiIHZpZXdCb3g9IjAgMCA3MiA3MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZyBpZD0iY29sb3IiPgogICAgPHBhdGggZmlsbD0iI0QyMkYyNyIgZD0iTTM0LDE2LjExMjN2LTIuNTEwOWMwLTEuMzgwNywxLjExOTMtMi41LDIuNS0yLjVsMCwwYzEuMzgwNywwLDIuNSwxLjExOTMsMi41LDIuNXYyLjUiLz4KICAgIDxwYXRoIGZpbGw9IiNEMENGQ0UiIGQ9Ik0xMy41LDQxLjEwMTRMMTMuNSw0MS4xMDE0Yy0xLjM4MDcsMC0yLjUtMS4xMTkzLTIuNS0yLjV2LThjMC0xLjM4MDcsMS4xMTkzLTIuNSwyLjUtMi41bDAsMCBjMS4zODA3LDAsMi41LDEuMTE5MywyLjUsMi41djhDMTYsMzkuOTgyMSwxNC44ODA3LDQxLjEwMTQsMTMuNSw0MS4xMDE0eiIvPgogICAgPHBhdGggZmlsbD0iI0QwQ0ZDRSIgZD0iTTU4LjUsNDEuMTAxNEw1OC41LDQxLjEwMTRjMS4zODA3LDAsMi41LTEuMTE5MywyLjUtMi41di04YzAtMS4zODA3LTEuMTE5My0yLjUtMi41LTIuNWwwLDAgYy0xLjM4MDcsMC0yLjUsMS4xMTkzLTIuNSwyLjV2OEM1NiwzOS45ODIxLDU3LjExOTMsNDEuMTAxNCw1OC41LDQxLjEwMTR6Ii8+CiAgICA8cGF0aCBmaWxsPSIjRDBDRkNFIiBkPSJNNDcuNDUwNSw1Ni4xMTIzaC0yMi45MDFjLTQuNzAyMiwwLTguNTQ5NS0zLjg0NzMtOC41NDk1LTguNTQ5NXYtMjIuOTAxIGMwLTQuNzAyMiwzLjg0NzMtOC41NDk1LDguNTQ5NS04LjU0OTVoMjIuOTAxYzQuNzAyMiwwLDguNTQ5NSwzLjg0NzMsOC41NDk1LDguNTQ5NXYyMi45MDEgQzU2LDUyLjI2NDksNTIuMTUyNyw1Ni4xMTIzLDQ3LjQ1MDUsNTYuMTEyM3oiLz4KICAgIDxwYXRoIGZpbGw9IiM5QjlCOUEiIGQ9Ik0zNS40OTc3LDU2LjExMTVoMTMuMjg2NWMzLjk2ODcsMCw3LjIxNTgtMy44NDczLDcuMjE1OC04LjU0OTVWMjQuNjYxIGMwLTQuNzAyMi0zLjI0NzEtOC41NDk1LTcuMjE1OC04LjU0OTVoLTIuMzUyNiIvPgogICAgPGVsbGlwc2UgY3g9IjQ0LjgzNDYiIGN5PSIyOS4wMDI3IiByeD0iMi44MzM4IiByeT0iMi44MzM4IiBmaWxsPSIjRkZGRkZGIi8+CiAgICA8ZWxsaXBzZSBjeD0iMjcuMzM0MiIgY3k9IjI5LjAwMjIiIHJ4PSIyLjgzMzgiIHJ5PSIyLjgzMzgiIGZpbGw9IiNGRkZGRkYiLz4KICAgIDxwYXRoIGZpbGw9IiNGRkZGRkYiIGQ9Ik00NC41LDQ3LjUwMDVoLTE3Yy0yLjIsMC00LTEuOC00LTRsMCwwYzAtMi4yLDEuOC00LDQtNGgxN2MyLjIsMCw0LDEuOCw0LDRsMCwwIEM0OC41LDQ1LjcwMDUsNDYuNyw0Ny41MDA1LDQ0LjUsNDcuNTAwNXoiLz4KICA8L2c+CiAgPGcgaWQ9ImhhaXIiLz4KICA8ZyBpZD0ic2tpbiIvPgogIDxnIGlkPSJza2luLXNoYWRvdyIvPgogIDxnIGlkPSJsaW5lIj4KICAgIDxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2UtbWl0ZXJsaW1pdD0iMiIgc3Ryb2tlLXdpZHRoPSIyIiBkPSJNMzQsMTYuMDEwOVYxMy41YzAtMS4zODA3LDEuMTE5My0yLjUsMi41LTIuNWwwLDBjMS4zODA3LDAsMi41LDEuMTE5MywyLjUsMi41VjE2Ii8+CiAgICA8cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLW1pdGVybGltaXQ9IjIiIHN0cm9rZS13aWR0aD0iMiIgZD0iTTQ3LjQ1MDUsNTZoLTIyLjkwMUMxOS44NDczLDU2LDE2LDUyLjE1MjcsMTYsNDcuNDUwNXYtMjIuOTAxQzE2LDE5Ljg0NzMsMTkuODQ3MywxNiwyNC41NDk1LDE2aDIyLjkwMSBDNTIuMTUyNywxNiw1NiwxOS44NDczLDU2LDI0LjU0OTV2MjIuOTAxQzU2LDUyLjE1MjcsNTIuMTUyNyw1Niw0Ny40NTA1LDU2eiIvPgogICAgPGVsbGlwc2UgY3g9IjQ0LjgzNDYiIGN5PSIyOS4wMDIyIiByeD0iMi44MzM4IiByeT0iMi44MzM4IiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLW1pdGVybGltaXQ9IjIiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPGVsbGlwc2UgY3g9IjI3LjMzNDIiIGN5PSIyOS4wMDE3IiByeD0iMi44MzM4IiByeT0iMi44MzM4IiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLW1pdGVybGltaXQ9IjIiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2UtbWl0ZXJsaW1pdD0iMiIgc3Ryb2tlLXdpZHRoPSIyIiBkPSJNNDQuNSw0Ny41aC0xN2MtMi4yLDAtNC0xLjgtNC00bDAsMCBjMC0yLjIsMS44LTQsNC00aDE3YzIuMiwwLDQsMS44LDQsNGwwLDBDNDguNSw0NS43LDQ2LjcsNDcuNSw0NC41LDQ3LjV6Ii8+CiAgICA8cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLW1pdGVybGltaXQ9IjIiIHN0cm9rZS13aWR0aD0iMiIgZD0iTTEzLjUsNDFMMTMuNSw0MWMtMS4zODA3LDAtMi41LTEuMTE5My0yLjUtMi41di04YzAtMS4zODA3LDEuMTE5My0yLjUsMi41LTIuNWwwLDBjMS4zODA3LDAsMi41LDEuMTE5MywyLjUsMi41djggQzE2LDM5Ljg4MDcsMTQuODgwNyw0MSwxMy41LDQxeiIvPgogICAgPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1taXRlcmxpbWl0PSIyIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik01OC41LDQxTDU4LjUsNDFjMS4zODA3LDAsMi41LTEuMTE5MywyLjUtMi41di04YzAtMS4zODA3LTEuMTE5My0yLjUtMi41LTIuNWwwLDBjLTEuMzgwNywwLTIuNSwxLjExOTMtMi41LDIuNXY4IEM1NiwzOS44ODA3LDU3LjExOTMsNDEsNTguNSw0MXoiLz4KICAgIDxsaW5lIHgxPSIyOCIgeDI9IjI4IiB5MT0iNDAiIHkyPSI0NyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1taXRlcmxpbWl0PSIyIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxsaW5lIHgxPSIzMyIgeDI9IjMzIiB5MT0iNDAiIHkyPSI0NyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1taXRlcmxpbWl0PSIyIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxsaW5lIHgxPSIzOCIgeDI9IjM4IiB5MT0iNDAiIHkyPSI0NyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1taXRlcmxpbWl0PSIyIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxsaW5lIHgxPSI0MyIgeDI9IjQzIiB5MT0iNDAiIHkyPSI0NyIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS1taXRlcmxpbWl0PSIyIiBzdHJva2Utd2lkdGg9IjIiLz4KICA8L2c+Cjwvc3ZnPgo=";
+const CAR_SVG = "data:image/svg+xml;base64,PHN2ZyBpZD0iZW1vamkiIHZpZXdCb3g9IjAgMCA3MiA3MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZyBpZD0iY29sb3IiPgogICAgPHBhdGggZmlsbD0iI2VhNWE0NyIgc3Ryb2tlPSJub25lIiBkPSJNNjQuOCw0NGwtMS4xLTAuNmMtMC40LTAuMi0wLjYtMC42LTAuNS0xYzAuMy0xLjksMC41LTguNS05LjctMTEuNWMtMC4yLTAuMS0wLjQtMC4xLTAuNi0wLjFsLTE5LjYsMC4xIGMtMC40LDAtMC44LDAuMS0xLjEsMC4zbC0xMC4zLDYuOWMtMC4yLDAuMS0wLjQsMC4yLTAuNiwwLjJjLTEuOS0wLjEtMy43LDAuMS01LjYsMC40Yy01LjQsMS4xLTcuNiw0LTguNCw1LjUgYy0wLjIsMC4zLTAuMiwwLjctMC4yLDFjMC4xLDIuNC0xLjUsNS4xLDAuOSw3LjNsMTkuNC0wLjFsMjAuNC0wLjVsMTYuMS0wLjJjMC45LTAuMTAwMSwyLjQtMS40LDIuOC0yLjIwMDEgQzY4LjQsNDYuOCw2NSw0NC4xLDY0LjgsNDR6Ii8+CiAgICA8cGF0aCBmaWxsPSIjOWI5YjlhIiBzdHJva2U9Im5vbmUiIGQ9Ik0xNy4zLDQ2LjRjLTIuMiwwLTQsMS44LTQsNGMwLDIuMiwxLjgsNCw0LDRzNC0xLjgsNC00QzIxLjMsNDguMiwxOS41LDQ2LjQsMTcuMyw0Ni40eiIvPgogICAgPHBhdGggZmlsbD0iIzliOWI5YSIgc3Ryb2tlPSJub25lIiBkPSJNNTcuMSw0Ni40Yy0yLjIsMC00LDEuOC00LDRjMCwyLjIsMS44LDQsNCw0YzIuMiwwLDQtMS44LDQtNEM2MS4xLDQ4LjIsNTkuMyw0Ni40LDU3LjEsNDYuNHoiLz4KICAgIDxwYXRoIGZpbGw9IiM5MmQzZjUiIHN0cm9rZT0ibm9uZSIgZD0iTTU2LjEsMzkuM1YzNWMwLTAuOS0wLjgtMS43LTEuNy0xLjdsMCwwSDMzLjJjLTAuMSwwLTAuMiwwLTAuMiwwLjFsLTgsNS43Yy0wLjIsMC4xLTAuMiwwLjQtMC4xLDAuNiBjMC4xLDAuMSwwLjIsMC4yLDAuMywwLjJjNS42LDAsMjcuMi0wLjIsMzAuNC0wLjFDNTUuOSwzOS44LDU2LjEsMzkuNiw1Ni4xLDM5LjNDNTYuMSwzOS40LDU2LjEsMzkuNCw1Ni4xLDM5LjN6Ii8+CiAgICA8cG9seWdvbiBmaWxsPSIjZmNlYTJiIiBzdHJva2U9Im5vbmUiIHBvaW50cz0iOC45LDQwLjUgMTIuOSw0Mi4xIDEwLjgsNDUgNS44LDQ1LjEiLz4KICA8L2c+CiAgPGcgaWQ9ImhhaXIiLz4KICA8ZyBpZD0ic2tpbiIvPgogIDxnIGlkPSJza2luLXNoYWRvdyIvPgogIDxnIGlkPSJsaW5lIj4KICAgIDxsaW5lIHgxPSI0Ny42IiB4Mj0iMjciIHkxPSI1MSIgeTI9IjUxLjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiLz4KICAgIDxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik04LjEsNTEuNCBjLTAuOS0wLjItMS43LTAuNS0xLjgtMWMtMC4xLTEtMC4zLTMuOC0wLjMtNS4xYzAtMC41LDAuMS0xLjEsMC40LTEuNWMxLjEtMiw0LjgtNi44LDE0LjktNi40bDEwLjMtNi45YzAuNS0wLjMsMS4xLTAuNSwxLjYtMC41IGwxOS42LTAuMWMwLjMsMCwwLjYsMCwwLjksMC4xYzIuMiwwLjYsMTEuNyw0LDEwLjQsMTIuNmwxLjEsMC42YzAuNSwwLjIsMC45LDAuNywxLDEuMmMwLjQsMS40LDAuMywyLjktMC4yLDQuMyIvPgogICAgPHBvbHlsaW5lIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiIHBvaW50cz0iMjQuOSwzOS45IDU1LjEsMzkuNyA1NS4xLDM1LjIiLz4KICAgIDxjaXJjbGUgY3g9IjE3LjMiIGN5PSI1MC40IiByPSI1IiBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIyIi8+CiAgICA8Y2lyY2xlIGN4PSI1Ny4xIiBjeT0iNTAuNCIgcj0iNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPHBvbHlsaW5lIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMDAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBzdHJva2Utd2lkdGg9IjIiIHBvaW50cz0iMTIuMyw0Mi45IDEwLjUsNDUuMSA2LjgsNDUiLz4KICA8L2c+Cjwvc3ZnPgo=";
+const DOLL_SVG = "data:image/svg+xml;base64,PHN2ZyBpZD0iZW1vamkiIHZpZXdCb3g9IjAgMCA3MiA3MiIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZyBpZD0iY29sb3IiPgogICAgPHBhdGggZmlsbD0iIzZhNDYyZiIgZD0iTTMwLjU2MTEsMTAuMDY2YTcuNTAwOSw3LjUwMDksMCwxLDAtOC45NjQ3LDkuNzg4MVoiLz4KICAgIDxwYXRoIGZpbGw9IiM2YTQ2MmYiIGQ9Ik01MC40MDQxLDE5Ljg1NDJBNy41MDA4LDcuNTAwOCwwLDEsMCw0MS40NCwxMC4wNjQ5WiIvPgogICAgPHBhdGggZmlsbD0iI2E1NzkzOSIgZD0iTTUyLjU2NjksNDIuNDgyNkExNi4wMTIxLDE2LjAxMjEsMCwwLDAsNDcuNDUyNCwzNS4xM2ExNS45NTUxLDE1Ljk1NTEsMCwxLDAtMjIuODQ5Mi4wNjI3LDE1Ljk1MTgsMTUuOTUxOCwwLDAsMC01LjA0NjgsNy4zMTE0YzQuMTg4OS41OTQ0LDYuODQ0NCw0LjcxNjQsNi44NDQ0LDkuNjM4LDAsNS4zMy0yLjc3NDYsNi4zMjEzLTIuNzc0Niw2LjMyMTNhMjkuNTE3NiwyOS41MTc2LDAsMCwwLDEyLjM3MywyLjg5OTNjMy40MywwLDcuNDgxNS0xLjI0OTUsMTIuMDQxLTMuMjg0NCwwLDAtMi40MS0uNjA2Mi0yLjQxLTUuOTM2MkM0NS42Myw0Ny4xNzE4LDQ4LjMxODEsNDMuMDEzMiw1Mi41NjY5LDQyLjQ4MjZaIi8+CiAgICA8cGF0aCBmaWxsPSIjNmE0NjJmIiBkPSJNMzYsMzkuOTQ3OGMtNC42MzM4LDAtOC40MDMzLTMuMTQ3NS04LjQwMzMtNy4wMTY2UzMxLjM2NjQsMjUuOTEzNiwzNiwyNS45MTM2czguNDAzMywzLjE0ODQsOC40MDMzLDcuMDE3NlM0MC42MzQsMzkuOTQ3OCwzNiwzOS45NDc4WiIvPgogICAgPHBhdGggZmlsbD0iIzNmM2YzZiIgZD0iTTM2LDMyLjc4NjZoLS4wMDU5Yy0uMDIzNCwwLS4wNDY4LS4wMDA5LS4wNjkzLS4wMDI5aDBsLS4wMDE5LS4wMDFoLS4wMDc5YS44NDguODQ4LDAsMCwxLS4xNDU1LS4wMjczYy0uMTU4Mi0uMDQzLTMuODgwOC0xLjA5LTMuODgwOC0zLjk3LDAtMS42NDA3LDEuMjQtMi42OCwzLjMxNzQtMi43NzkzbDEuMzAwNy0uMDA3OWMyLjI2MDguMDE3NiwzLjYwMzYsMS4wNTg2LDMuNjAzNiwyLjc4NzIsMCwyLjg4LTMuNzIyNywzLjkyNjctMy44ODA5LDMuOTdhLjg1NzMuODU3MywwLDAsMS0uMTM4Ny4wMjYzaC0uMDAzOWwtLjAwMTkuMDAxaDBjLS4wMjY0LjAwMi0uMDUyOC4wMDM5LS4wOC4wMDM5SDM2WiIvPgogICAgPHBhdGggZmlsbD0iIzZhNDYyZiIgZD0iTTE4LjUsNjEuODA3NmMtNC42ODY1LDAtOC41LTQuMzM1OS04LjUtOS42NjZzMy44MTM1LTkuNjY1LDguNS05LjY2NSw4LjUsNC4zMzU5LDguNSw5LjY2NVMyMy4xODY3LDYxLjgwNzYsMTguNSw2MS44MDc2WiIvPgogICAgPHBhdGggZmlsbD0iIzZhNDYyZiIgZD0iTTUzLjUsNjEuODA3NmMtNC42ODY1LDAtOC41LTQuMzM1OS04LjUtOS42NjZzMy44MTM1LTkuNjY1LDguNS05LjY2NSw4LjUsNC4zMzU5LDguNSw5LjY2NVM1OC4xODY3LDYxLjgwNzYsNTMuNSw2MS44MDc2WiIvPgogIDwvZz4KICA8ZyBpZD0ibGluZSI+CiAgICA8cGF0aCBkPSJNMzAsMjIuMDM0M2EyLDIsMCwxLDAsMi0yLDIuMDAwNywyLjAwMDcsMCwwLDAtMiwyIi8+CiAgICA8cGF0aCBkPSJNMzgsMjIuMDM0M2EyLDIsMCwxLDAsMi0yLDIuMDAwNywyLjAwMDcsMCwwLDAtMiwyIi8+CiAgICA8cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIyIiBkPSJNMzIuNzYyMSwzNC4xNDE2YTQuOTk3MSw0Ljk5NzEsMCwwLDAsNi40NzQ3LjAwMDkiLz4KICAgIDxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik0yMSwyNC4wNDQ4YTE1LDE1LDAsMSwwLDE1LTE1LDE1LjAwNTUsMTUuMDA1NSwwLDAsMC0xNSwxNSIvPgogICAgPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS13aWR0aD0iMiIgZD0iTTMwLjU2MTEsMTAuMDY2YTcuNTAwOSw3LjUwMDksMCwxLDAtOC45NjQ3LDkuNzg4MSIvPgogICAgPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS13aWR0aD0iMiIgZD0iTTExLDUyLjE0MmMwLDQuNzg1NiwzLjM2MTksOC42NjU2LDcuNSw4LjY2NTZzNy41LTMuODgsNy41LTguNjY1NmMwLTQuNzgxMy0zLjM2MTktOC42NjU2LTcuNS04LjY2NTZTMTEsNDcuMzYwNywxMSw1Mi4xNDIiLz4KICAgIDxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik00Niw1Mi4xNDJjMCw0Ljc4NTYsMy4zNjE5LDguNjY1Niw3LjUsOC42NjU2czcuNS0zLjg4LDcuNS04LjY2NTZjMC00Ljc4MTMtMy4zNjE5LTguNjY1Ni03LjUtOC42NjU2UzQ2LDQ3LjM2MDcsNDYsNTIuMTQyIi8+CiAgICA8cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik0xNC40MTQzLDUzLjQyNDhhNC4wMDE1LDQuMDAxNSwwLDAsMCw0LDQiLz4KICAgIDxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbWl0ZXJsaW1pdD0iMTAiIHN0cm9rZS13aWR0aD0iMiIgZD0iTTU0LDU3LjQyNDhhNC4wMDE1LDQuMDAxNSwwLDAsMCw0LTQiLz4KICAgIDxwYXRoIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzAwMCIgc3Ryb2tlLW1pdGVybGltaXQ9IjEwIiBzdHJva2Utd2lkdGg9IjIiIGQ9Ik0yOC41LDMyLjkzMWMwLDMuMzc2MywzLjM2MTksNi4xMTM4LDcuNSw2LjExMzhzNy41LTIuNzM3NSw3LjUtNi4xMTM4YzAtMy4zNzMyLTMuMzYxOC02LjExMzctNy41LTYuMTEzN3MtNy41LDIuNzQwNS03LjUsNi4xMTM3Ii8+CiAgICA8cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAiIHN0cm9rZS1taXRlcmxpbWl0PSIxMCIgc3Ryb2tlLXdpZHRoPSIyIiBkPSJNNTAuNDA0MSwxOS44NTQyQTcuNTAwOCw3LjUwMDgsMCwxLDAsNDEuNDQsMTAuMDY0OSIvPgogICAgPGxpbmUgeDE9IjM2IiB4Mj0iMzYiIHkxPSIzMi4zMzI1IiB5Mj0iMzUuMzMyNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIvPgogICAgPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIgZD0iTTM2LDMxLjkxMzFzLTMuMjM3NC0uODgxLTMuMjM3NC0zLjEyNzdjMC0xLjU0NDYsMS41My0xLjg2MDcsMi40ODY1LTEuOTA3NGwxLjI2MzgtLjAwNjhjLjkxMjcuMDA3MiwyLjcyNDkuMjMzMiwyLjcyNDksMS45MTQyLDAsMi4yNDY3LTMuMjM3MywzLjEyNzctMy4yMzczLDMuMTI3NyIvPgogICAgPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIgZD0iTTIwLjI4MjMsNDMuNzI1MWMxLjEyODItNS4yMzI5LDUuODQ3OS04LjM5MjYsNS44NDc5LTguMzkyNiIvPgogICAgPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIgZD0iTTQ2LDM1LjMzMjVzNC42NjExLDMuMTIwNSw1LjgyNjQsOC4yOTUyIi8+CiAgICA8cGF0aCBmaWxsPSJub25lIiBzdHJva2U9IiMwMDAiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSIyIiBkPSJNMjQuOTUxNiw0MS45NDk0LDI4LjUsNDguMDFhMy4yMiwzLjIyLDAsMCwwLDQuMjU3OCwxLjMyMzVoMGEzLjIyLDMuMjIsMCwwLDAsMS40MjYzLTQuMzQ3MWwtMS4wMTYzLTEuOTg0OCIvPgogICAgPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIgZD0iTTQ3LjQzNDgsNDEuOTQ5NCw0My42NDM4LDQ4LjAxYTMuMjIsMy4yMiwwLDAsMS00LjI1NzgsMS4zMjM1aDBBMy4yMiwzLjIyLDAsMCwxLDM3Ljk2LDQ0Ljk4NjdsMS4wMTYzLTEuOTg0OCIvPgogICAgPHBhdGggZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMDAwIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiIHN0cm9rZS13aWR0aD0iMiIgZD0iTTI0LjI4NjEsNTguMDc4MnM5LjQ1MzYsNi41ODA4LDIzLjQyNzgsMCIvPgogIDwvZz4KPC9zdmc+Cg==";
+
+function ri(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+
+function build(){
+  const ans = [];
+  let n = 1;
+  const rows1 = [];
+
+  // Q1-Q2: two-digit + two-digit
+  for(let i=0;i<2;i++){
+    const a = ri(10,69), b = ri(10,99-a);
+    rows1.push(row(n, `${a} + ${b} =`, `<span class="ans-line"></span>`));
+    ans.push(`${n}. ${a} + ${b} = <b>${a+b}</b>`); n++;
+  }
+  // Q3: three-term addition
+  {
+    const a = ri(1,9), b = ri(10,40), c = ri(10,40);
+    rows1.push(row(n, `${a} + ${b} + ${c} =`, `<span class="ans-line"></span>`));
+    ans.push(`${n}. ${a} + ${b} + ${c} = <b>${a+b+c}</b>`); n++;
+  }
+  // Q4: two-digit subtraction
+  {
+    const a = ri(40,90), b = ri(10,a-1);
+    rows1.push(row(n, `${a} - ${b} =`, `<span class="ans-line"></span>`));
+    ans.push(`${n}. ${a} - ${b} = <b>${a-b}</b>`); n++;
+  }
+  // Q5: find the minuend, ___ - a = b
+  {
+    const a = ri(20,60), b = ri(5,30), missing = a+b;
+    rows1.push(row(n, `<span class="ans-line"></span> - ${a} = ${b}`, ``));
+    ans.push(`${n}. ___ - ${a} = ${b} &nbsp; missing number = <b>${missing}</b>`); n++;
+  }
+
+  // Q6: missing-digit subtraction column: _8 - 3_ = result
+  const rows2 = [];
+  {
+    const x = ri(4,9), y = ri(0,9);
+    const top = x*10+8, sub = 30+y, result = top-sub;
+    rows2.push(`<div class="q"><span class="q-num">${n}.</span>
+      <div class="vertical-sum">
+        <div class="row"><span class="box"></span><span class="digit">8</span></div>
+        <div class="row"><span class="op">-</span><span class="digit">3</span><span class="box"></span></div>
+        <div class="line"></div>
+        <div class="row result">${String(result).padStart(2,'0')}</div>
+      </div></div>`);
+    ans.push(`${n}. _8 - 3_ = ${result} &nbsp; top box = <b>${x}</b>, bottom box = <b>${y}</b>`); n++;
+  }
+  // Q7: missing-digit addition column: _8 + 3_ = RESULT  (mirrors Q6's subtraction puzzle
+  // shape: top ones digit fixed at 8, addend tens digit fixed at 3, top TENS digit (x) and
+  // addend ONES digit (y) are the two unknowns, result is fully shown). This has exactly
+  // ONE solution for any generated result, because y is forced into [0,9] and x is then its
+  // base-10 quotient -- unlike an earlier version that left both unknowns independent and
+  // had many valid (x,y) pairs for the same result.
+  {
+    const x = ri(1,5), y = ri(0,9);
+    const top = 10*x+8, addend = 30+y, result = top+addend;
+    rows2.push(`<div class="q"><span class="q-num">${n}.</span>
+      <div class="vertical-sum">
+        <div class="row"><span class="box"></span><span class="digit">8</span></div>
+        <div class="row"><span class="op">+</span><span class="digit">3</span><span class="box"></span></div>
+        <div class="line"></div>
+        <div class="row result">${result}</div>
+      </div></div>`);
+    ans.push(`${n}. _8 + 3_ = ${result} &nbsp; top box = <b>${x}</b>, bottom box = <b>${y}</b>`); n++;
+  }
+
+  // Q8: MCQ — which option has the same sum
+  const mc1 = [];
+  {
+    const a = ri(20,49), b = ri(10,30), c = ri(10,30);
+    const target = a+b+c;
+    const correctText = `${a+1} + ${b+c-1}`;
+    const opts = [
+      {t:correctText, v:target},
+      {t:`${a+2} + ${b+c}`, v:a+2+b+c},
+      {t:`${b} + ${a}`, v:a+b},
+      {t:`${a} + ${b-5>0?b-5:b}`, v:a+(b-5>0?b-5:b)},
+    ];
+    const letters = ['A','B','C','D'];
+    const correctIdx = 0;
+    ans.push(`${n}. Which sum equals "${a} + ${b} + ${c}" (=${target})? &nbsp; Answer: <b>${letters[correctIdx]}. ${opts[correctIdx].t}</b>`);
+    mc1.push(`<div class="q"><div class="q-text"><span class="q-num">${n}.</span> Which of these has the same total as "${a} + ${b} + ${c}"?</div>
+      <div class="mc-opts">${opts.map((o,i)=>`<div>${letters[i]}. ${o.t}</div>`).join('')}</div></div>`);
+    n++;
+  }
+  // Q9: MCQ word problem
+  {
+    const oranges = ri(15,35), extra = ri(5,20);
+    const apples = oranges+extra, total = oranges+apples;
+    const opts = [extra, apples, oranges, total];
+    // ensure distinct
+    const letters = ['A','B','C','D'];
+    ans.push(`${n}. A shop has ${oranges} oranges, and ${extra} more apples than oranges. How many oranges and apples in total? &nbsp; Answer: <b>D. ${total}</b>`);
+    mc1.push(`<div class="q"><div class="q-text"><span class="q-num">${n}.</span> A fruit shop has ${oranges} oranges. It has ${extra} more apples than oranges. How many oranges and apples are there in total?</div>
+      <div class="mc-opts"><div>A. ${opts[0]}</div><div>B. ${opts[1]}</div><div>C. ${opts[2]}</div><div>D. ${opts[3]}</div></div></div>`);
+    n++;
+  }
+
+  // Q10-11: price table
+  const robotPrice = ri(30,55), carPrice = ri(70,99), dollPrice = ri(15,29);
+  const q10n = n, q11n = n+1;
+  ans.push(`${q10n}. Robot ($${robotPrice}) + Doll ($${dollPrice}) = <b>$${robotPrice+dollPrice}</b>`);
+  ans.push(`${q11n}. Car ($${carPrice}) - Robot ($${robotPrice}) = <b>$${carPrice-robotPrice}</b> more expensive`);
+  n += 2;
+
+  document.getElementById('sheet').innerHTML = `
+    <div class="paper-title">Primary 1 Mathematics — Term 2 Test</div>
+    <div class="paper-sub2">Name: ______________&nbsp;&nbsp;&nbsp; Class: ____ ( __ )&nbsp;&nbsp;&nbsp; Score: ____ / 13</div>
+    <div class="paper-sub">TIME: 20 MINUTES</div>
+
+    <div class="section-title">(1) Calculate the following. (10% @2%)</div>
+    ${rows1.join('')}
+
+    <div class="section-title">(2) Fill in the boxes to complete the vertical form. (4% @2%)</div>
+    ${rows2.join('')}
+
+    <div class="section-title">(3) Circle the correct answer. (4% @2%)</div>
+    ${mc1.join('')}
+
+    <div class="section-title">(4) Answer questions ${q10n}-${q11n} based on the price list. (4% @2%)</div>
+    <table class="price-table">
+      <tr><th></th><th>Robot</th><th>Car</th><th>Doll</th></tr>
+      <tr><td>Item</td>
+        <td><img src="${ROBOT_SVG}" alt="robot"></td>
+        <td><img src="${CAR_SVG}" alt="car"></td>
+        <td><img src="${DOLL_SVG}" alt="doll"></td>
+      </tr>
+      <tr><td>Price</td><td class="price">$${robotPrice}</td><td class="price">$${carPrice}</td><td class="price">$${dollPrice}</td></tr>
+    </table>
+    <div class="q"><div class="q-text"><span class="q-num">${q10n}.</span> Buying a robot and a doll together costs ( <span class="ans-line"></span> ) dollars in total.</div></div>
+    <div class="q"><div class="q-text"><span class="q-num">${q11n}.</span> The car is ( <span class="ans-line"></span> ) dollars more expensive than the robot.</div></div>
+
+    <div class="section-title">(5) Complete the following application questions. (8% @4%)</div>
+    ${buildWordProblems(n, ans)}
+
+    <div class="footnote">Take one clear photo of this whole page and send it back once done.</div>
+  `;
+  document.getElementById('answerBox').innerHTML = `<b>Answer key</b><ol>${ans.map(a=>`<li>${a}</li>`).join('')}</ol>`;
+}
+
+function buildWordProblems(startN, ans){
+  let n = startN;
+  const out = [];
+  {
+    const yesterday = ri(20,50), today = ri(15,40);
+    out.push(`<div class="q"><div class="q-text"><span class="q-num">${n}.</span> A shop sold ${yesterday} pencils yesterday, and ${today} more pencils today. How many pencils were sold in these two days in total?</div>
+      <span class="ans-line" style="width:220px;"></span> <span class="workbox">Working</span></div>`);
+    ans.push(`${n}. ${yesterday} + ${today} = <b>${yesterday+today}</b>`); n++;
+  }
+  {
+    const sweets = ri(40,70), candy = ri(10,35), choc = ri(10, sweets-5>35?35:sweets-5);
+    out.push(`<div class="q"><div class="q-text"><span class="q-num">${n}.</span> Mum has ${sweets} sweets, ${candy} candies, and ${choc} chocolates. How many more sweets than chocolates does Mum have?</div>
+      <span class="ans-line" style="width:220px;"></span> <span class="workbox">Working</span></div>`);
+    ans.push(`${n}. ${sweets} - ${choc} = <b>${sweets-choc}</b>`); n++;
+  }
+  return out.join('');
+}
+
+function row(n, text, extra){
+  return `<div class="q"><div class="q-text"><span class="q-num">${n}.</span> ${text} ${extra}</div></div>`;
+}
+
+document.getElementById('genBtn').onclick = build;
+document.getElementById('printBtn').onclick = () => window.print();
+document.getElementById('answerBtn').onclick = () => {
+  const box = document.getElementById('answerBox');
+  box.style.display = box.style.display === 'block' ? 'none' : 'block';
+};
+build();
+</script>
