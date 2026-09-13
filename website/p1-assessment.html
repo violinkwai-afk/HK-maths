@@ -1,0 +1,486 @@
+<title>P1 Assessment Practice</title>
+<style>
+
+:root{ --bg:#faf7f0; --card:#ffffff; --ink:#2b2620; --muted:#8a8172; --border:#e8e1d2; --accent:#2e9e93; --accent-ink:#0b3d38; --accent-soft:#e3f4f1; --line:#3a332a; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#1c1a16; --card:#26231d; --ink:#f0ece1; --muted:#a89f8d; --border:#3a352c; --accent:#5ec4b8; --accent-ink:#dff5f2; --accent-soft:#233631; --line:#e8e1d2; }
+}
+:root[data-theme="dark"]{ --bg:#1c1a16; --card:#26231d; --ink:#f0ece1; --muted:#a89f8d; --border:#3a352c; --accent:#5ec4b8; --accent-ink:#dff5f2; --accent-soft:#233631; --line:#e8e1d2; }
+*{box-sizing:border-box;}
+body{background:var(--bg); color:var(--ink); font-family:-apple-system,"Segoe UI",Arial,sans-serif; max-width:760px; margin:0 auto; padding-inline:16px; padding-block:24px;}
+.toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;}
+button{font-family:inherit; font-size:.95rem; font-weight:700; padding:12px 18px; border-radius:10px; border:1px solid transparent; cursor:pointer;}
+#genBtn{background:var(--accent); color:#fff;}
+#printBtn{background:var(--ink); color:var(--bg);}
+#answerBtn{background:transparent; color:var(--ink); border-color:var(--border);}
+.sheet{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px 20px;}
+.paper-title{text-align:center; font-size:1.05rem; font-weight:700; margin:0 0 2px;}
+.paper-sub2{text-align:center; font-size:.8rem; color:var(--muted); margin-bottom:3px;}
+.paper-sub{text-align:center; font-size:.72rem; color:var(--muted); margin-bottom:12px; letter-spacing:.02em;}
+.section-title{font-weight:700; font-size:.92rem; margin:18px 0 10px; padding-bottom:4px; border-bottom:2px solid var(--line);}
+.section-title:first-of-type{margin-top:0;}
+.q{margin-bottom:12px; font-size:.92rem; line-height:1.5;}
+.q-text{font-size:.92rem; margin-bottom:6px; line-height:1.4;}
+.ans-line{border-bottom:1.5px solid var(--line); width:90px; height:22px; display:inline-block; vertical-align:middle;}
+
+.dbs-table{width:100%; border-collapse:collapse; margin:10px 0 16px; font-size:.88rem;}
+.dbs-table th,.dbs-table td{border:1.5px solid var(--line); padding:8px; text-align:center;}
+
+.b-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
+.b-item{display:flex; align-items:center; gap:10px;}
+.b-num{font-weight:700; color:var(--accent-ink);}
+.vertical-sum{font-family:"Courier New",monospace; font-size:1.05rem;}
+.vertical-sum .row{display:flex; justify-content:flex-end; gap:6px;}
+.vertical-sum .digit2{display:inline-block; min-width:30px; text-align:center;}
+.vertical-sum .op{width:20px; text-align:center;}
+.vertical-sum .line{border-top:1.5px solid var(--line); margin:3px 0; width:70px;}
+.vertical-sum .result{justify-content:flex-end; font-weight:700;}
+.b-ans{font-size:.95rem;}
+
+.c-row{display:flex; gap:16px; margin:8px 0 16px;}
+.c-pill{display:inline-block; padding:8px 16px; border:2px solid var(--line); border-radius:20px; font-weight:700; font-size:1rem;}
+
+.d-row{display:flex; align-items:center; flex-wrap:wrap; gap:4px; margin:6px 0 16px;}
+.d-box{display:inline-flex; align-items:center; justify-content:center; width:44px; height:32px; border:1.5px solid var(--line); border-radius:6px; font-weight:700;}
+.d-box.filled{background:var(--accent-soft);}
+.d-arrow{color:var(--muted);}
+
+.g-item{margin-bottom:10px;}
+
+.i-grid{display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px;}
+.i-item{text-align:center; font-size:.85rem;}
+.i-item svg{margin:6px 0;}
+.i-target{font-weight:700; margin-top:6px; color:var(--accent-ink);}
+
+.o-item{margin-bottom:20px; font-size:.9rem;}
+.o-row{display:flex; justify-content:space-between; align-items:flex-start; gap:14px; margin:8px 0;}
+.o-equation{font-size:.95rem; line-height:1.8;}
+.o-op{display:inline-block; width:20px; height:20px; border:1.5px solid var(--line); border-radius:50%; text-align:center; line-height:18px;}
+.o-colform-label{font-style:italic; font-size:.78rem; margin-bottom:4px; text-align:center;}
+.workbox{display:inline-block; border:1.5px solid var(--line); border-radius:6px; vertical-align:top;}
+.o-conclude{font-size:.9rem; margin-top:6px;}
+
+.footnote{margin-top:18px; font-size:.7rem; color:var(--muted); text-align:center; border-top:1px dashed var(--border); padding-top:10px;}
+#answerBox{display:none; margin-top:16px; padding:16px 18px; background:var(--accent-soft); border:1px solid var(--accent); border-radius:12px; font-size:.85rem;}
+#answerBox ol{margin:8px 0 0; padding-left:20px; line-height:1.7;}
+@media print { .no-print{display:none;} .sheet{border:none; padding:0;} body{background:#fff;} }
+
+</style>
+
+<div class="toolbar no-print">
+  <button id="genBtn">🔄 New test</button>
+  <button id="printBtn">🖨️ Print / Save as PDF</button>
+  <button id="answerBtn">🔑 Answer key</button>
+</div>
+
+<div class="sheet" id="sheet"></div>
+<div id="answerBox"></div>
+
+<script>
+
+function ri(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+const ONES = ['zero','one','two','three','four','five','six','seven','eight','nine','ten',
+  'eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+const TENS = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+function numToWords(n){
+  if(n<20) return ONES[n];
+  const t = Math.floor(n/10), o = n%10;
+  return o===0 ? TENS[t] : `${TENS[t]}-${ONES[o]}`;
+}
+const ORD_ONES = ['zeroth','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth','tenth',
+  'eleventh','twelfth','thirteenth','fourteenth','fifteenth','sixteenth','seventeenth','eighteenth','nineteenth'];
+const ORD_TENS = ['','','twentieth','thirtieth','fortieth','fiftieth','sixtieth','seventieth','eightieth','ninetieth'];
+function numToOrdinalWords(n){
+  if(n<20) return ORD_ONES[n];
+  const t = Math.floor(n/10), o = n%10;
+  return o===0 ? ORD_TENS[t] : `${TENS[t]}-${ORD_ONES[o]}`;
+}
+function ordinalSuffix(n){
+  if(n%100>=11 && n%100<=13) return 'th';
+  switch(n%10){ case 1: return 'st'; case 2: return 'nd'; case 3: return 'rd'; default: return 'th'; }
+}
+
+function clockSVG(hour, minute){
+  const cx=60, cy=60, r=55;
+  let ticks = '';
+  for(let i=0;i<12;i++){
+    const ang = (i*30-90)*Math.PI/180;
+    const x1 = cx+ (r-6)*Math.cos(ang), y1 = cy+(r-6)*Math.sin(ang);
+    const x2 = cx+ r*Math.cos(ang), y2 = cy+r*Math.sin(ang);
+    ticks += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="var(--line)" stroke-width="2"/>`;
+  }
+  let nums = '';
+  for(let i=1;i<=12;i++){
+    const ang = (i*30-90)*Math.PI/180;
+    const x = cx+(r-16)*Math.cos(ang), y = cy+(r-16)*Math.sin(ang);
+    nums += `<text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" font-size="10" text-anchor="middle" fill="var(--ink)">${i}</text>`;
+  }
+  const hourAngle = ((hour%12) + minute/60) * 30 - 90;
+  const minAngle = minute*6 - 90;
+  const hx = cx + 28*Math.cos(hourAngle*Math.PI/180), hy = cy + 28*Math.sin(hourAngle*Math.PI/180);
+  const mx = cx + 42*Math.cos(minAngle*Math.PI/180), my = cy + 42*Math.sin(minAngle*Math.PI/180);
+  return `<svg width="120" height="120" viewBox="0 0 120 120">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--card)" stroke="var(--line)" stroke-width="2.5"/>
+    ${ticks}${nums}
+    <line x1="${cx}" y1="${cy}" x2="${hx.toFixed(1)}" y2="${hy.toFixed(1)}" stroke="var(--ink)" stroke-width="3" stroke-linecap="round"/>
+    <line x1="${cx}" y1="${cy}" x2="${mx.toFixed(1)}" y2="${my.toFixed(1)}" stroke="var(--ink)" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="3" fill="var(--ink)"/>
+  </svg>`;
+}
+function blankClockSVG(){
+  const cx=60, cy=60, r=55;
+  let ticks = '', nums = '';
+  for(let i=0;i<12;i++){
+    const ang = (i*30-90)*Math.PI/180;
+    const x1 = cx+ (r-6)*Math.cos(ang), y1 = cy+(r-6)*Math.sin(ang);
+    const x2 = cx+ r*Math.cos(ang), y2 = cy+r*Math.sin(ang);
+    ticks += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="var(--line)" stroke-width="2"/>`;
+  }
+  for(let i=1;i<=12;i++){
+    const ang = (i*30-90)*Math.PI/180;
+    const x = cx+(r-16)*Math.cos(ang), y = cy+(r-16)*Math.sin(ang);
+    nums += `<text x="${x.toFixed(1)}" y="${(y+4).toFixed(1)}" font-size="10" text-anchor="middle" fill="var(--ink)">${i}</text>`;
+  }
+  return `<svg width="120" height="120" viewBox="0 0 120 120">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="var(--card)" stroke="var(--line)" stroke-width="2.5"/>
+    ${ticks}${nums}
+    <circle cx="${cx}" cy="${cy}" r="3" fill="var(--ink)"/>
+  </svg>`;
+}
+function timeWords(hour, minute){
+  const h12 = hour%12===0 ? 12 : hour%12;
+  if(minute===0) return `${numToWords(h12)} o'clock`;
+  if(minute===30) return `half past ${numToWords(h12)}`;
+  if(minute===15) return `a quarter past ${numToWords(h12)}`;
+  if(minute===45){ const nextH = h12===12?1:h12+1; return `a quarter to ${numToWords(nextH)}`; }
+  return `${numToWords(h12)} ${minute}`;
+}
+function digitalTime(hour, minute){
+  return `${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}`;
+}
+
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function buildA(ans, n0){
+  let n = n0;
+  const rows = [];
+  for(let i=0;i<5;i++){
+    const val = ri(11, 89);
+    const showWords = Math.random()<0.5;
+    if(showWords){
+      rows.push({num:n, given:numToWords(val).replace(/^./,c=>c.toUpperCase()), blank:'numeral'});
+      ans.push(`A${n}. ${numToWords(val)} = <b>${val}</b>`);
+    } else {
+      rows.push({num:n, given:String(val), blank:'words'});
+      ans.push(`A${n}. ${val} = <b>${numToWords(val)}</b>`);
+    }
+    n++;
+  }
+  return {html: rows, nextN: n};
+}
+
+function buildB(ans, n0){
+  let n = n0;
+  const items = [];
+  // 1-2: 2-digit + 2-digit
+  for(let i=0;i<2;i++){
+    const a = ri(10,49), b = ri(10,49);
+    items.push({a, b, op:'+', result:a+b, blankPos:'result'});
+    ans.push(`B${n}. ${a} + ${b} = <b>${a+b}</b>`); n++;
+  }
+  // 3: 2-digit - 1-digit
+  {
+    const b = ri(1,9), a = ri(b+10, 29);
+    items.push({a, b, op:'-', result:a-b, blankPos:'result'});
+    ans.push(`B${n}. ${a} - ${b} = <b>${a-b}</b>`); n++;
+  }
+  // 4: 2-digit - (blank) = result, find subtrahend
+  {
+    const a = ri(13,29), result = ri(1, a-1);
+    const b = a - result;
+    items.push({a, b:null, op:'-', result, blankPos:'subtrahend', trueB:b});
+    ans.push(`B${n}. ${a} - ( ${b} ) = ${result}`); n++;
+  }
+  return {items, nextN: n};
+}
+
+function buildC(ans, n0){
+  let n = n0;
+  const out = [];
+  // 1: smallest odd number among 3
+  {
+    let nums = [];
+    while(nums.length<3){
+      const v = ri(20,89);
+      if(!nums.includes(v)) nums.push(v);
+    }
+    // ensure at least one odd
+    if(!nums.some(v=>v%2===1)) nums[0] = nums[0]+1;
+    const odds = nums.filter(v=>v%2===1);
+    const smallestOdd = Math.min(...odds);
+    out.push({label:'Circle the smallest odd number.', nums});
+    ans.push(`C${n}. Smallest odd number among ${nums.join(', ')} = <b>${smallestOdd}</b>`); n++;
+  }
+  // 2: largest among 3
+  {
+    let nums = [];
+    while(nums.length<3){
+      const v = ri(10,99);
+      if(!nums.includes(v)) nums.push(v);
+    }
+    const largest = Math.max(...nums);
+    out.push({label:'Compare the following 2-digit numbers. Circle the largest number.', nums});
+    ans.push(`C${n}. Largest among ${nums.join(', ')} = <b>${largest}</b>`); n++;
+  }
+  return {out, nextN:n};
+}
+
+function buildD(ans, n0){
+  let n = n0;
+  const out = [];
+  for(let i=0;i<2;i++){
+    const step = shuffle([2,3,5,-2,-5])[0];
+    const start = step>0 ? ri(1, 20) : ri(40,80);
+    const seq = [0,1,2,3,4,5].map(k=>start+k*step);
+    // blank out 2 positions (not all, keep some given like the original: mix of given/blank across 6 slots)
+    const blankIdx = shuffle([0,1,2,3,4,5]).slice(0,2).sort((a,b)=>a-b);
+    out.push({seq, blankIdx});
+    ans.push(`D${n}. Sequence: ${seq.join(', ')} (step ${step>0?'+':''}${step})`); n++;
+  }
+  return {out, nextN:n};
+}
+
+function buildG(ans, n0){
+  let n = n0;
+  const out = [];
+  // 1. addition
+  { const a=ri(10,59), b=ri(10,39); out.push(`${a} + ${b} = `); ans.push(`G${n}. ${a}+${b}=<b>${a+b}</b>`); n++; }
+  // 2. subtraction
+  { const a=ri(11,19), b=ri(1,9); out.push(`${a} - ${b} = `); ans.push(`G${n}. ${a}-${b}=<b>${a-b}</b>`); n++; }
+  // 3. commutative
+  { const a=ri(10,40), b=ri(5,40); out.push(`${a} + ${b} = ${b} + `); ans.push(`G${n}. commutative -> <b>${a}</b>`); n++; }
+  // 4. sum of A and B
+  { const a=ri(15,40), b=ri(15,40); out.push(`The sum of ${a} and ${b} is `); ans.push(`G${n}. <b>${a+b}</b>`); n++; }
+  // 5. A is __ less than B
+  { const b=ri(20,50), diff=ri(3,15), a=b-diff; out.push(`${a} is ___ less than ${b}.`); ans.push(`G${n}. <b>${diff}</b>`); n++; }
+  // 6. difference between A and B
+  { const a=ri(5,20), b=ri(21,40); out.push(`The difference between ${a} and ${b} is `); ans.push(`G${n}. <b>${b-a}</b>`); n++; }
+  // 7. X tens + Y units
+  { const t=ri(2,9), u=ri(1,20); out.push(`${t} tens + ${u} units equal ___ units.`); ans.push(`G${n}. <b>${t*10+u}</b>`); n++; }
+  // 8. value of a digit
+  { const t=ri(1,9), u=ri(0,9); out.push(`In the number ${t}${u}, the value of the digit '${t}' is `); ans.push(`G${n}. <b>${t*10}</b>`); n++; }
+  return {out, nextN:n};
+}
+
+function buildI(ans, n0){
+  let n = n0;
+  const out = [];
+  const minuteChoices = [0,30,15,45];
+  for(let i=0;i<2;i++){
+    const h = ri(1,12), m = shuffle(minuteChoices)[0];
+    out.push({kind:'read', h, m});
+    ans.push(`I${n}. Clock shows <b>${timeWords(h,m)}</b>`); n++;
+  }
+  { const h = ri(1,12), m = shuffle(minuteChoices)[0];
+    out.push({kind:'draw', h, m});
+    ans.push(`I${n}. Draw hands for <b>${timeWords(h,m)}</b>`); n++;
+  }
+  { const h = ri(1,12), m = shuffle(minuteChoices)[0];
+    out.push({kind:'digital', h, m});
+    ans.push(`I${n}. Digital form = <b>${digitalTime(h,m)}</b>`); n++;
+  }
+  return {out, nextN:n};
+}
+
+function buildN(ans, n0){
+  let n = n0;
+  const subjects = shuffle(['English','Chinese','Mathematics','General Studies','Art','Music']);
+  // pick 4-5 consecutive weekdays (Mon-Fri mostly) to fill, matching original's pattern (Sun blank, then 4 filled, then blanks)
+  const startDay = 1; // Monday
+  const filledCount = 4;
+  const table = {};
+  for(let i=0;i<filledCount;i++) table[startDay+i] = subjects[i];
+  const filledDayIdx = Object.keys(table).map(Number).sort((a,b)=>a-b);
+
+  // Q1: "The X assessment is held on ___"
+  const qDayIdx = filledDayIdx[ri(0,filledDayIdx.length-1)];
+  const qSubject = table[qDayIdx];
+  ans.push(`N${n}. The ${qSubject} assessment is held on <b>${DAYS[qDayIdx]}</b>.`); n++;
+
+  // Q2: "has X today. will have Y assessment 2 days later"
+  const baseIdx = filledDayIdx[ri(0, filledDayIdx.length-3 >=0 ? filledDayIdx.length-3 : 0)];
+  const laterIdx = baseIdx+2;
+  const laterSubject = table[laterIdx] || 'no assessment';
+  ans.push(`N${n}. Has ${table[baseIdx]} on ${DAYS[baseIdx]}; 2 days later (${DAYS[laterIdx]}) -> <b>${laterSubject}</b>`); n++;
+
+  // Q3: "has one assessment today but none tomorrow. Today is ___" -> the last filled day
+  const lastFilledIdx = filledDayIdx[filledDayIdx.length-1];
+  ans.push(`N${n}. Today (one assessment, none tomorrow) = <b>${DAYS[lastFilledIdx]}</b>`); n++;
+
+  return {table, baseIdx, laderIdx:laterIdx, qDayIdx, qSubject, lastFilledIdx, nextN:n};
+}
+
+function buildO(ans, n0){
+  let n = n0;
+  const out = [];
+  { const total=ri(15,25), part=ri(5,total-5);
+    out.push({text:`There are ${total} buns and ${part} hamburgers. How many more buns are there than hamburgers?`, a:total, b:part, op:'-', result:total-part, unit:'buns', concludeTemplate:(r)=>`There are ( ${r} ) more buns than hamburgers.`});
+    ans.push(`O${n}. ${total} - ${part} = <b>${total-part}</b>`); n++;
+  }
+  { const total=ri(12,20), left=ri(3,total-3);
+    out.push({text:`There were ${total} sweets. If some are eaten, ${left} sweets are left. How many sweets are eaten?`, a:total, b:left, op:'-', result:total-left, unit:'sweets', concludeTemplate:(r)=>`( ${r} ) sweets are eaten.`});
+    ans.push(`O${n}. ${total} - ${left} = <b>${total-left}</b>`); n++;
+  }
+  { const bMore=ri(8,16), brother=ri(8,20);
+    out.push({text:`Kevin has ${bMore} more strawberries than his brother. If Kevin's brother has ${brother} strawberries, how many strawberries does Kevin have?`, a:brother, b:bMore, op:'+', result:brother+bMore, unit:'strawberries', concludeTemplate:(r)=>`Kevin has ( ${r} ) strawberries.`});
+    ans.push(`O${n}. ${brother} + ${bMore} = <b>${brother+bMore}</b>`); n++;
+  }
+  return {out, nextN:n};
+}
+
+
+function renderA(data){
+  const rows = data.html.map(r => {
+    const w = r.blank==='numeral' ? '' : r.given;
+    const num = r.blank==='numeral' ? '<span class="ans-line" style="width:70px;"></span>' : r.given;
+    return `<tr><td>${r.num}</td><td>${r.blank==='words'?r.given:'<span class="ans-line" style="width:130px;"></span>'}</td><td>${r.blank==='numeral'?r.given:'<span class="ans-line" style="width:70px;"></span>'}</td></tr>`;
+  }).join('');
+  return `<table class="dbs-table"><tr><th>#</th><th>Words</th><th>Numerals</th></tr>${rows}</table>`;
+}
+
+function renderB(data){
+  const cells = data.items.map((it,i)=>{
+    const num = i+1;
+    if(it.blankPos==='result'){
+      return `<div class="b-item"><div class="b-num">${num}.</div>
+        <div class="vertical-sum"><div class="row"><span class="digit2">${it.a}</span></div><div class="row"><span class="op">${it.op}</span><span class="digit2">${it.b}</span></div><div class="line"></div></div>
+        <div class="b-ans">( <span class="ans-line" style="width:60px;"></span> )</div></div>`;
+    } else {
+      return `<div class="b-item"><div class="b-num">${num}.</div>
+        <div class="vertical-sum"><div class="row"><span class="digit2">${it.a}</span></div><div class="row"><span class="op">${it.op}</span><span>( <span class="ans-line" style="width:36px;"></span> )</span></div><div class="line"></div><div class="row result">${it.result}</div></div></div>`;
+    }
+  }).join('');
+  return `<div class="b-grid">${cells}</div>`;
+}
+
+function renderC(data){
+  return data.out.map((q,i)=>{
+    const shapes = q.nums.map(v=>`<span class="c-pill">${v}</span>`).join('');
+    return `<div class="q"><div class="q-text">${i+1}. ${q.label}</div><div class="c-row">${shapes}</div></div>`;
+  }).join('');
+}
+
+function renderD(data){
+  return data.out.map((q,i)=>{
+    const boxes = q.seq.map((v,idx)=> q.blankIdx.includes(idx)
+      ? `<span class="d-box"></span>`
+      : `<span class="d-box filled">${v}</span>`
+    ).join('<span class="d-arrow">→</span>');
+    return `<div class="q"><div class="q-text">${i+1}.</div><div class="d-row">${boxes}</div></div>`;
+  }).join('');
+}
+
+function renderG(data){
+  return data.out.map((text,i)=>`<div class="q g-item">${i+1}. ${text} <span class="ans-line" style="width:80px;"></span></div>`).join('');
+}
+
+function renderI(data){
+  return data.out.map((q,i)=>{
+    if(q.kind==='read'){
+      return `<div class="i-item"><div class="q-text">${i+1}. Write the time in traditional form in words.</div>${clockSVG(q.h,q.m)}<div class="ans-line" style="width:100%; max-width:220px; margin-top:6px;"></div></div>`;
+    } else if(q.kind==='draw'){
+      return `<div class="i-item"><div class="q-text">${i+1}. Draw the hands on the clock face to show the time.</div>${blankClockSVG()}<div class="i-target">${timeWords(q.h,q.m).replace(/^./,c=>c.toUpperCase())}</div></div>`;
+    } else {
+      return `<div class="i-item"><div class="q-text">${i+1}. Write the time in digital form.</div>${clockSVG(q.h,q.m)}<div class="ans-line" style="width:100px; margin-top:6px;"></div></div>`;
+    }
+  }).join('');
+}
+
+function renderN(data){
+  const header = DAYS.map(d=>`<th>${d}</th>`).join('');
+  const cells = DAYS.map((d,idx)=>`<td>${data.table[idx]||''}</td>`).join('');
+  return `<table class="dbs-table"><tr>${header}</tr><tr>${cells}</tr></table>
+    <div class="q">1. The ${data.qSubject} assessment is held on <span class="ans-line" style="width:140px;"></span>. (day of the week)</div>
+    <div class="q">2. Daniel has the ${data.table[data.baseIdx]} assessment today. He will have the <span class="ans-line" style="width:140px;"></span> assessment 2 days later.</div>
+    <div class="q">3. Daniel has one assessment today but he will not have any assessment tomorrow. Today is <span class="ans-line" style="width:140px;"></span>. (day of the week)</div>`;
+}
+
+function renderO(data){
+  return data.out.map((q,i)=>{
+    const opSym = q.op==='+' ? '+' : '−';
+    return `<div class="o-item">
+      <div class="q-text">${i+1}. ${q.text}</div>
+      <div class="o-row">
+        <div class="o-equation">
+          ( <span class="ans-line" style="width:50px;"></span> ) <span class="o-op">${opSym==='+'?'○':'○'}</span> ( <span class="ans-line" style="width:50px;"></span> )<br>
+          = ( <span class="ans-line" style="width:50px;"></span> ) ${q.unit}
+        </div>
+        <div class="o-colform">
+          <div class="o-colform-label">Column form</div>
+          <div class="workbox" style="width:100px; height:80px;"></div>
+        </div>
+      </div>
+      <div class="o-conclude">∴ ${q.concludeTemplate('___')}</div>
+    </div>`;
+  }).join('');
+}
+
+
+function build(){
+  const ans = [];
+  let n;
+
+  n = 1; const A = buildA(ans, n); n = A.nextN;
+  n = 1; const B = buildB(ans, n); n = B.nextN;
+  n = 1; const C = buildC(ans, n); n = C.nextN;
+  n = 1; const D = buildD(ans, n); n = D.nextN;
+  n = 1; const G = buildG(ans, n); n = G.nextN;
+  n = 1; const I = buildI(ans, n); n = I.nextN;
+  n = 1; const N = buildN(ans, n); n = N.nextN;
+  n = 1; const O = buildO(ans, n); n = O.nextN;
+
+  document.getElementById('sheet').innerHTML = `
+    <div class="paper-title">Mathematics First Assessment Practice</div>
+    <div class="paper-sub2">Name: ______________&nbsp;&nbsp;&nbsp; Class: G.1___&nbsp;&nbsp;&nbsp; Marks: ____</div>
+    <div class="paper-sub">TIME ALLOWED: 45 MINUTES</div>
+
+    <div class="section-title">A. Fill in the following table.</div>
+    ${renderA(A)}
+
+    <div class="section-title">B. Calculate.</div>
+    ${renderB(B)}
+
+    <div class="section-title">C. Circle the correct answers.</div>
+    ${renderC(C)}
+
+    <div class="section-title">D. Fill in the missing numbers.</div>
+    ${renderD(D)}
+
+    <div class="section-title">G. Fill in the blanks.</div>
+    ${renderG(G)}
+
+    <div class="section-title">I. Time.</div>
+    <div class="i-grid">${renderI(I)}</div>
+
+    <div class="section-title">N. Look at the assessment timetable below. Fill in the blanks.</div>
+    ${renderN(N)}
+
+    <div class="section-title">O. Story sums.</div>
+    ${renderO(O)}
+
+    <div class="footnote">Take one clear photo of this whole page and send it back once done.</div>
+  `;
+  document.getElementById('answerBox').innerHTML = `<b>Answer key</b><ol>${ans.map(a=>`<li>${a}</li>`).join('')}</ol>`;
+}
+
+document.getElementById('genBtn').onclick = build;
+document.getElementById('printBtn').onclick = () => window.print();
+document.getElementById('answerBtn').onclick = () => {
+  const box = document.getElementById('answerBox');
+  box.style.display = box.style.display === 'block' ? 'none' : 'block';
+};
+build();
+
+</script>
