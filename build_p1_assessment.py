@@ -1,84 +1,10 @@
-<title>P1 Assessment Practice</title>
-<style>
+import json
 
-:root{ --bg:#faf7f0; --card:#ffffff; --ink:#2b2620; --muted:#8a8172; --border:#e8e1d2; --accent:#2e9e93; --accent-ink:#0b3d38; --accent-soft:#e3f4f1; --line:#3a332a; }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){ --bg:#1c1a16; --card:#26231d; --ink:#f0ece1; --muted:#a89f8d; --border:#3a352c; --accent:#5ec4b8; --accent-ink:#dff5f2; --accent-soft:#233631; --line:#e8e1d2; }
-}
-:root[data-theme="dark"]{ --bg:#1c1a16; --card:#26231d; --ink:#f0ece1; --muted:#a89f8d; --border:#3a352c; --accent:#5ec4b8; --accent-ink:#dff5f2; --accent-soft:#233631; --line:#e8e1d2; }
-*{box-sizing:border-box;}
-body{background:var(--bg); color:var(--ink); font-family:-apple-system,"Segoe UI",Arial,sans-serif; max-width:760px; margin:0 auto; padding-inline:16px; padding-block:24px;}
-.toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;}
-button{font-family:inherit; font-size:.95rem; font-weight:700; padding:12px 18px; border-radius:10px; border:1px solid transparent; cursor:pointer;}
-#genBtn{background:var(--accent); color:#fff;}
-#printBtn{background:var(--ink); color:var(--bg);}
-#answerBtn{background:transparent; color:var(--ink); border-color:var(--border);}
-.sheet{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px 20px;}
-.paper-title{text-align:center; font-size:1.05rem; font-weight:700; margin:0 0 2px;}
-.paper-sub2{text-align:center; font-size:.8rem; color:var(--muted); margin-bottom:3px;}
-.paper-sub{text-align:center; font-size:.72rem; color:var(--muted); margin-bottom:12px; letter-spacing:.02em;}
-.section-title{font-weight:700; font-size:.88rem; margin:12px 0 6px; padding-bottom:3px; border-bottom:2px solid var(--line);}
-.section-title:first-of-type{margin-top:0;}
-.q{margin-bottom:8px; font-size:.88rem; line-height:1.35;}
-.q-text{font-size:.88rem; margin-bottom:4px; line-height:1.3;}
-.ans-line{border-bottom:1.5px solid var(--line); width:90px; height:18px; display:inline-block; vertical-align:middle;}
+# This builds a JS-heavy single HTML file. Rather than write 1000 lines of
+# f-string HTML, we generate the JS logic in Python-authored template
+# strings for clarity, then dump into the file.
 
-.dbs-table{width:100%; border-collapse:collapse; margin:6px 0 10px; font-size:.82rem;}
-.dbs-table th,.dbs-table td{border:1.5px solid var(--line); padding:4px 6px; text-align:center;}
-.a-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;}
-
-.b-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; margin-bottom:10px;}
-.b-item{display:flex; align-items:center; gap:8px;}
-.b-num{font-weight:700; color:var(--accent-ink);}
-.vertical-sum{font-family:"Courier New",monospace; font-size:.95rem;}
-.vertical-sum .row{display:flex; justify-content:flex-end; gap:5px;}
-.vertical-sum .digit2{display:inline-block; min-width:26px; text-align:center;}
-.vertical-sum .op{width:18px; text-align:center;}
-.vertical-sum .line{border-top:1.5px solid var(--line); margin:2px 0; width:60px;}
-.vertical-sum .result{justify-content:flex-end; font-weight:700;}
-.b-ans{font-size:.88rem;}
-
-.c-row{display:flex; gap:10px; margin:4px 0 10px;}
-.c-pill{display:inline-block; padding:5px 12px; border:2px solid var(--line); border-radius:16px; font-weight:700; font-size:.92rem;}
-
-.d-row{display:flex; align-items:center; flex-wrap:wrap; gap:3px; margin:4px 0 10px;}
-.d-box{display:inline-flex; align-items:center; justify-content:center; width:38px; height:28px; border:1.5px solid var(--line); border-radius:5px; font-weight:700; font-size:.85rem;}
-.d-box.filled{background:var(--accent-soft);}
-.d-arrow{color:var(--muted); font-size:.85rem;}
-
-.g-item{margin-bottom:5px;}
-
-.i-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;}
-.i-item{text-align:center; font-size:.8rem;}
-.i-item svg{margin:3px 0; width:90px; height:90px;}
-.i-target{font-weight:700; margin-top:3px; color:var(--accent-ink);}
-
-.o-item{margin-bottom:12px; font-size:.85rem;}
-.o-row{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin:5px 0;}
-.o-equation{font-size:.88rem; line-height:1.5;}
-.o-op{display:inline-block; width:18px; height:18px; border:1.5px solid var(--line); border-radius:50%; text-align:center; line-height:16px;}
-.o-colform-label{font-style:italic; font-size:.72rem; margin-bottom:3px; text-align:center;}
-.workbox{display:inline-block; border:1.5px solid var(--line); border-radius:6px; vertical-align:top;}
-.o-conclude{font-size:.85rem; margin-top:3px;}
-
-.footnote{margin-top:18px; font-size:.7rem; color:var(--muted); text-align:center; border-top:1px dashed var(--border); padding-top:10px;}
-#answerBox{display:none; margin-top:16px; padding:16px 18px; background:var(--accent-soft); border:1px solid var(--accent); border-radius:12px; font-size:.85rem;}
-#answerBox ol{margin:8px 0 0; padding-left:20px; line-height:1.7;}
-@media print { .no-print{display:none;} .sheet{border:none; padding:0;} body{background:#fff;} }
-
-</style>
-
-<div class="toolbar no-print">
-  <button id="genBtn">🔄 New test</button>
-  <button id="printBtn">🖨️ Print / Save as PDF</button>
-  <button id="answerBtn">🔑 Answer key</button>
-</div>
-
-<div class="sheet" id="sheet"></div>
-<div id="answerBox"></div>
-
-<script>
-
+JS = r"""
 function ri(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
 function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
 
@@ -340,24 +266,20 @@ function buildO(ans, n0){
   }
   return {out, nextN:n};
 }
+"""
 
+print(len(JS))
+with open("/tmp/claude-115/-var-www-my-project/4b3bebf6-d9c7-45d8-9565-5e9d553816ca/scratchpad/dbs_js_core.js", "w") as f:
+    f.write(JS)
 
+RENDER_JS = r"""
 function renderA(data){
-  // r.blank names which column is BLANK (needs filling in); r.given holds the
-  // value for the OTHER column. Earlier version had this test inverted on
-  // both columns, so numerals ended up printed in the Words column and
-  // vice versa.
-  function tableFor(rows){
-    const body = rows.map(r => {
-      const wordsCell = r.blank==='numeral' ? r.given : '<span class="ans-line" style="width:100px;"></span>';
-      const numeralCell = r.blank==='words' ? r.given : '<span class="ans-line" style="width:56px;"></span>';
-      return `<tr><td>${r.num}</td><td>${wordsCell}</td><td>${numeralCell}</td></tr>`;
-    }).join('');
-    return `<table class="dbs-table"><tr><th>#</th><th>Words</th><th>Numerals</th></tr>${body}</table>`;
-  }
-  const left = data.html.filter((_,i) => i%2===0);
-  const right = data.html.filter((_,i) => i%2===1);
-  return `<div class="a-grid">${tableFor(left)}${tableFor(right)}</div>`;
+  const rows = data.html.map(r => {
+    const w = r.blank==='numeral' ? '' : r.given;
+    const num = r.blank==='numeral' ? '<span class="ans-line" style="width:70px;"></span>' : r.given;
+    return `<tr><td>${r.num}</td><td>${r.blank==='words'?r.given:'<span class="ans-line" style="width:130px;"></span>'}</td><td>${r.blank==='numeral'?r.given:'<span class="ans-line" style="width:70px;"></span>'}</td></tr>`;
+  }).join('');
+  return `<table class="dbs-table"><tr><th>#</th><th>Words</th><th>Numerals</th></tr>${rows}</table>`;
 }
 
 function renderB(data){
@@ -436,8 +358,13 @@ function renderO(data){
     </div>`;
   }).join('');
 }
+"""
 
+with open("/tmp/claude-115/-var-www-my-project/4b3bebf6-d9c7-45d8-9565-5e9d553816ca/scratchpad/dbs_js_render.js", "w") as f:
+    f.write(RENDER_JS)
+print("render js len", len(RENDER_JS))
 
+MAIN_JS = r"""
 function build(){
   const ans = [];
   let n;
@@ -492,5 +419,102 @@ document.getElementById('answerBtn').onclick = () => {
   box.style.display = box.style.display === 'block' ? 'none' : 'block';
 };
 build();
+"""
 
+CSS = r"""
+:root{ --bg:#faf7f0; --card:#ffffff; --ink:#2b2620; --muted:#8a8172; --border:#e8e1d2; --accent:#2e9e93; --accent-ink:#0b3d38; --accent-soft:#e3f4f1; --line:#3a332a; }
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --bg:#1c1a16; --card:#26231d; --ink:#f0ece1; --muted:#a89f8d; --border:#3a352c; --accent:#5ec4b8; --accent-ink:#dff5f2; --accent-soft:#233631; --line:#e8e1d2; }
+}
+:root[data-theme="dark"]{ --bg:#1c1a16; --card:#26231d; --ink:#f0ece1; --muted:#a89f8d; --border:#3a352c; --accent:#5ec4b8; --accent-ink:#dff5f2; --accent-soft:#233631; --line:#e8e1d2; }
+*{box-sizing:border-box;}
+body{background:var(--bg); color:var(--ink); font-family:-apple-system,"Segoe UI",Arial,sans-serif; max-width:760px; margin:0 auto; padding-inline:16px; padding-block:24px;}
+.toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px;}
+button{font-family:inherit; font-size:.95rem; font-weight:700; padding:12px 18px; border-radius:10px; border:1px solid transparent; cursor:pointer;}
+#genBtn{background:var(--accent); color:#fff;}
+#printBtn{background:var(--ink); color:var(--bg);}
+#answerBtn{background:transparent; color:var(--ink); border-color:var(--border);}
+.sheet{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px 20px;}
+.paper-title{text-align:center; font-size:1.05rem; font-weight:700; margin:0 0 2px;}
+.paper-sub2{text-align:center; font-size:.8rem; color:var(--muted); margin-bottom:3px;}
+.paper-sub{text-align:center; font-size:.72rem; color:var(--muted); margin-bottom:12px; letter-spacing:.02em;}
+.section-title{font-weight:700; font-size:.88rem; margin:12px 0 6px; padding-bottom:3px; border-bottom:2px solid var(--line);}
+.section-title:first-of-type{margin-top:0;}
+.q{margin-bottom:8px; font-size:.88rem; line-height:1.35;}
+.q-text{font-size:.88rem; margin-bottom:4px; line-height:1.3;}
+.ans-line{border-bottom:1.5px solid var(--line); width:90px; height:18px; display:inline-block; vertical-align:middle;}
+
+.dbs-table{width:100%; border-collapse:collapse; margin:6px 0 10px; font-size:.82rem;}
+.dbs-table th,.dbs-table td{border:1.5px solid var(--line); padding:4px 6px; text-align:center;}
+.a-grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:10px;}
+
+.b-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px 16px; margin-bottom:10px;}
+.b-item{display:flex; align-items:center; gap:8px;}
+.b-num{font-weight:700; color:var(--accent-ink);}
+.vertical-sum{font-family:"Courier New",monospace; font-size:.95rem;}
+.vertical-sum .row{display:flex; justify-content:flex-end; gap:5px;}
+.vertical-sum .digit2{display:inline-block; min-width:26px; text-align:center;}
+.vertical-sum .op{width:18px; text-align:center;}
+.vertical-sum .line{border-top:1.5px solid var(--line); margin:2px 0; width:60px;}
+.vertical-sum .result{justify-content:flex-end; font-weight:700;}
+.b-ans{font-size:.88rem;}
+
+.c-row{display:flex; gap:10px; margin:4px 0 10px;}
+.c-pill{display:inline-block; padding:5px 12px; border:2px solid var(--line); border-radius:16px; font-weight:700; font-size:.92rem;}
+
+.d-row{display:flex; align-items:center; flex-wrap:wrap; gap:3px; margin:4px 0 10px;}
+.d-box{display:inline-flex; align-items:center; justify-content:center; width:38px; height:28px; border:1.5px solid var(--line); border-radius:5px; font-weight:700; font-size:.85rem;}
+.d-box.filled{background:var(--accent-soft);}
+.d-arrow{color:var(--muted); font-size:.85rem;}
+
+.g-item{margin-bottom:5px;}
+
+.i-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:10px;}
+.i-item{text-align:center; font-size:.8rem;}
+.i-item svg{margin:3px 0; width:90px; height:90px;}
+.i-target{font-weight:700; margin-top:3px; color:var(--accent-ink);}
+
+.o-item{margin-bottom:12px; font-size:.85rem;}
+.o-row{display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin:5px 0;}
+.o-equation{font-size:.88rem; line-height:1.5;}
+.o-op{display:inline-block; width:18px; height:18px; border:1.5px solid var(--line); border-radius:50%; text-align:center; line-height:16px;}
+.o-colform-label{font-style:italic; font-size:.72rem; margin-bottom:3px; text-align:center;}
+.workbox{display:inline-block; border:1.5px solid var(--line); border-radius:6px; vertical-align:top;}
+.o-conclude{font-size:.85rem; margin-top:3px;}
+
+.footnote{margin-top:18px; font-size:.7rem; color:var(--muted); text-align:center; border-top:1px dashed var(--border); padding-top:10px;}
+#answerBox{display:none; margin-top:16px; padding:16px 18px; background:var(--accent-soft); border:1px solid var(--accent); border-radius:12px; font-size:.85rem;}
+#answerBox ol{margin:8px 0 0; padding-left:20px; line-height:1.7;}
+@media print { .no-print{display:none;} .sheet{border:none; padding:0;} body{background:#fff;} }
+"""
+
+with open("/tmp/claude-115/-var-www-my-project/4b3bebf6-d9c7-45d8-9565-5e9d553816ca/scratchpad/dbs_js_core.js") as f:
+    core_js = f.read()
+with open("/tmp/claude-115/-var-www-my-project/4b3bebf6-d9c7-45d8-9565-5e9d553816ca/scratchpad/dbs_js_render.js") as f:
+    render_js = f.read()
+
+full_html = f"""<title>P1 Assessment Practice</title>
+<style>
+{CSS}
+</style>
+
+<div class="toolbar no-print">
+  <button id="genBtn">🔄 New test</button>
+  <button id="printBtn">🖨️ Print / Save as PDF</button>
+  <button id="answerBtn">🔑 Answer key</button>
+</div>
+
+<div class="sheet" id="sheet"></div>
+<div id="answerBox"></div>
+
+<script>
+{core_js}
+{render_js}
+{MAIN_JS}
 </script>
+"""
+
+out_path = "/home/claude_user/hk-maths/website/p1-assessment.html"
+with open(out_path, "w", encoding="utf-8") as f:
+    f.write(full_html)
+print("written", len(full_html), "to", out_path)
