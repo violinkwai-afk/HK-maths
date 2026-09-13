@@ -12,30 +12,31 @@
   #genBtn{background:var(--accent); color:#fff;}
   #printBtn{background:var(--ink); color:var(--bg);}
   #answerBtn{background:transparent; color:var(--ink); border-color:var(--border);}
-  .sheet{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:26px 22px;}
-  .paper-title{text-align:center; font-size:1.1rem; font-weight:700; margin:0 0 2px;}
-  .paper-sub2{text-align:center; font-size:.85rem; color:var(--muted); margin-bottom:4px;}
-  .paper-sub{text-align:center; font-size:.78rem; color:var(--muted); margin-bottom:18px; letter-spacing:.02em;}
-  .section-title{font-weight:700; font-size:1rem; margin:24px 0 14px; padding-bottom:6px; border-bottom:2px solid var(--line);}
+  .sheet{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px 20px;}
+  .paper-title{text-align:center; font-size:1.05rem; font-weight:700; margin:0 0 2px;}
+  .paper-sub2{text-align:center; font-size:.8rem; color:var(--muted); margin-bottom:3px;}
+  .paper-sub{text-align:center; font-size:.72rem; color:var(--muted); margin-bottom:12px; letter-spacing:.02em;}
+  .section-title{font-weight:700; font-size:.92rem; margin:16px 0 10px; padding-bottom:4px; border-bottom:2px solid var(--line);}
   .section-title:first-of-type{margin-top:0;}
-  .q{margin-bottom:22px;}
-  .q-text{font-size:1.15rem; margin-bottom:8px; line-height:1.5; font-variant-numeric:tabular-nums;}
-  .q-num{font-weight:700; margin-right:4px; color:var(--accent-ink);}
-  .ans-line{border-bottom:1.5px solid var(--line); width:110px; height:24px; display:inline-block;}
-  .mc-opts{display:grid; grid-template-columns:1fr 1fr; gap:6px 20px; margin-top:8px; font-size:1.05rem;}
-  .vertical-sum{font-size:1.2rem; font-family:"Courier New",monospace; width:130px; font-variant-numeric:tabular-nums; display:inline-block; vertical-align:middle; margin-left:14px;}
-  .vertical-sum .row{display:flex; justify-content:flex-end; gap:6px;}
-  .vertical-sum .box{display:inline-block; width:26px; height:26px; border:1.5px solid var(--line); border-radius:3px;}
-  .vertical-sum .digit{display:inline-block; width:26px; text-align:center;}
-  .vertical-sum .op{width:26px; text-align:center;}
-  .vertical-sum .line{border-top:1.5px solid var(--line); margin:4px 0;}
+  .section1-grid{display:grid; grid-template-columns:1fr 1fr; column-gap:18px;}
+  .q{margin-bottom:12px;}
+  .q-text{font-size:.98rem; margin-bottom:4px; line-height:1.35; font-variant-numeric:tabular-nums;}
+  .q-num{font-weight:700; margin-right:3px; color:var(--accent-ink);}
+  .ans-line{border-bottom:1.5px solid var(--line); width:90px; height:20px; display:inline-block;}
+  .mc-opts{display:grid; grid-template-columns:1fr 1fr; gap:4px 16px; margin-top:6px; font-size:.92rem;}
+  .vertical-sum{font-size:1.05rem; font-family:"Courier New",monospace; width:118px; font-variant-numeric:tabular-nums; display:inline-block; vertical-align:middle; margin-left:10px;}
+  .vertical-sum .row{display:flex; justify-content:flex-end; gap:5px;}
+  .vertical-sum .box{display:inline-block; width:22px; height:22px; border:1.5px solid var(--line); border-radius:3px;}
+  .vertical-sum .digit{display:inline-block; width:22px; text-align:center;}
+  .vertical-sum .op{width:22px; text-align:center;}
+  .vertical-sum .line{border-top:1.5px solid var(--line); margin:3px 0;}
   .vertical-sum .result{justify-content:flex-end; font-weight:700;}
-  .price-table{width:100%; border-collapse:collapse; margin:14px 0; font-size:.95rem;}
-  .price-table th,.price-table td{border:1.5px solid var(--line); padding:10px; text-align:center;}
-  .price-table img{width:52px; height:52px;}
+  .price-table{width:100%; border-collapse:collapse; margin:10px 0; font-size:.85rem;}
+  .price-table th,.price-table td{border:1.5px solid var(--line); padding:6px; text-align:center;}
+  .price-table img{width:40px; height:40px;}
   .price-table .price{font-weight:700;}
-  .workbox{display:inline-block; border:1.5px solid var(--line); border-radius:6px; width:150px; height:90px; vertical-align:top; margin-left:14px; padding:6px; font-size:.75rem; color:var(--muted);}
-  .footnote{margin-top:26px; font-size:.75rem; color:var(--muted); text-align:center; border-top:1px dashed var(--border); padding-top:12px;}
+  .workbox{display:inline-block; border:1.5px solid var(--line); border-radius:6px; width:130px; height:70px; vertical-align:top; margin-left:10px; padding:5px; font-size:.7rem; color:var(--muted);}
+  .footnote{margin-top:18px; font-size:.7rem; color:var(--muted); text-align:center; border-top:1px dashed var(--border); padding-top:10px;}
   #answerBox{display:none; margin-top:16px; padding:16px 18px; background:var(--accent-soft); border:1px solid var(--accent); border-radius:12px; font-size:.88rem;}
   #answerBox ol{margin:8px 0 0; padding-left:20px; line-height:1.8;}
   @media print { .no-print{display:none;} .sheet{border:none; padding:0;} body{background:#fff;} }
@@ -165,7 +166,7 @@ function build(){
     <div class="paper-sub">TIME: 20 MINUTES</div>
 
     <div class="section-title">(1) Calculate the following. (10% @2%)</div>
-    ${rows1.join('')}
+    <div class="section1-grid">${rows1.join('')}</div>
 
     <div class="section-title">(2) Fill in the boxes to complete the vertical form. (4% @2%)</div>
     ${rows2.join('')}
