@@ -43,6 +43,21 @@
     font-weight:800; font-size:.95rem; padding:14px; border-radius:16px; cursor:pointer; display:none;
     font-family:inherit; box-shadow:var(--shadow);
   }
+  .submit-btn:disabled{opacity:.6; cursor:default;}
+  .answerkey-box{margin-top:16px; display:none;}
+  .answerkey-box textarea{width:100%; min-height:70px; border-radius:14px; border:1px solid rgba(58,43,46,0.15);
+    padding:10px 12px; font-family:inherit; font-size:.8rem; color:var(--ink); resize:vertical;}
+  .answerkey-label{font-size:.75rem; color:var(--muted); margin:0 0 6px;}
+  .result-card{margin-top:20px; background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:16px; display:none;}
+  .result-score{font-size:1.2rem; font-weight:800; margin-bottom:10px;}
+  .result-item{display:flex; gap:8px; padding:8px 0; border-top:1px solid rgba(58,43,46,0.06); font-size:.82rem;}
+  .result-item:first-of-type{border-top:none;}
+  .result-mark{flex-shrink:0; font-weight:800;}
+  .result-mark.ok{color:#2f9e5c;}
+  .result-mark.no{color:#d9455f;}
+  .result-mark.unsure{color:var(--yellow-ink,#a9821f);}
+  .result-weak{margin-top:12px; padding-top:12px; border-top:1px solid rgba(58,43,46,0.06); font-size:.82rem;}
+  .result-weak b{display:block; margin-bottom:4px;}
 </style>
 </head>
 <body>
@@ -64,8 +79,15 @@
     </label>
 
     <div class="preview" id="preview"><img id="previewImg" alt=""></div>
+
+    <div class="answerkey-box" id="answerkeyBox">
+      <p class="answerkey-label">答案key（已從「下載試卷」頁自動帶入；如果係用另一部裝置，請貼上答案key）</p>
+      <textarea id="answerkeyInput" placeholder="例如：1. 43 + 26 = 69"></textarea>
+    </div>
+
     <button class="submit-btn" id="submitBtn">提交批改</button>
     <div class="notice" id="notice"></div>
+    <div class="result-card" id="resultCard"></div>
   </div>
 
   <script>
@@ -74,20 +96,101 @@
     const previewImg = document.getElementById('previewImg');
     const submitBtn = document.getElementById('submitBtn');
     const notice = document.getElementById('notice');
+    const answerkeyBox = document.getElementById('answerkeyBox');
+    const answerkeyInput = document.getElementById('answerkeyInput');
+    const resultCard = document.getElementById('resultCard');
+    let selectedFile = null;
+
+    // Pull in the answer key generator.html saved for the most recent worksheet.
+    try {
+      const saved = JSON.parse(localStorage.getItem('hk_maths_answer_key') || 'null');
+      if (saved && saved.answers) {
+        answerkeyInput.value = saved.answers.join('\n');
+      }
+    } catch (e) {}
 
     fileInput.addEventListener('change', () => {
       const file = fileInput.files[0];
       if (!file) return;
+      selectedFile = file;
       previewImg.src = URL.createObjectURL(file);
       preview.style.display = 'block';
+      answerkeyBox.style.display = 'block';
       submitBtn.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = '提交批改';
       notice.style.display = 'none';
+      resultCard.style.display = 'none';
     });
 
-    submitBtn.addEventListener('click', () => {
-      notice.textContent = '已收到你的照片！自動批改功能仍在開發中，暫時未能即時核對答案，敬請見諒。';
-      notice.style.display = 'block';
-      submitBtn.style.display = 'none';
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(',')[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function renderResult(data) {
+      const marks = { true: ['✓','ok'], false: ['✗','no'], null: ['?','unsure'] };
+      let html = `<div class="result-score">${escapeHtml(data.score || '')}</div>`;
+      (data.results || []).forEach(r => {
+        const key = r.correct === true ? 'true' : r.correct === false ? 'false' : 'null';
+        const [sym, cls] = marks[key];
+        html += `<div class="result-item"><span class="result-mark ${cls}">${sym}</span>
+          <span><b>${escapeHtml(String(r.question || ''))}.</b> ${escapeHtml(r.studentAnswer || '')}
+          ${r.note ? '<br><span style="color:var(--muted)">' + escapeHtml(r.note) + '</span>' : ''}</span></div>`;
+      });
+      if (data.weakAreas && data.weakAreas.length) {
+        html += `<div class="result-weak"><b>弱項分析</b>${data.weakAreas.map(w => escapeHtml(w)).join('、')}</div>`;
+      }
+      resultCard.innerHTML = html;
+      resultCard.style.display = 'block';
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    submitBtn.addEventListener('click', async () => {
+      if (!selectedFile) return;
+      const answerKey = answerkeyInput.value.trim();
+      if (!answerKey) {
+        notice.textContent = '請先貼上答案key，先可以準確批改。';
+        notice.style.display = 'block';
+        return;
+      }
+      submitBtn.disabled = true;
+      submitBtn.textContent = '批改緊，請稍等…';
+      notice.style.display = 'none';
+      resultCard.style.display = 'none';
+
+      try {
+        const base64 = await fileToBase64(selectedFile);
+        const res = await fetch('/api/grade', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            image: base64,
+            mediaType: selectedFile.type || 'image/jpeg',
+            answerKey,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          notice.textContent = data.message || '批改失敗，請稍後再試。';
+          notice.style.display = 'block';
+        } else {
+          renderResult(data);
+        }
+      } catch (e) {
+        notice.textContent = '網絡錯誤，請檢查連線後再試一次。';
+        notice.style.display = 'block';
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '提交批改';
+      }
     });
   </script>
 </body>

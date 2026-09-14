@@ -192,6 +192,19 @@ function renderSheet(worksheetId, questions){
     <div class="footnote">Print this page, have your child complete it on paper, then use the answer key above to check their work.</div>
   `;
   document.getElementById('answerBox').innerHTML = `<b>Answer key — Worksheet ${worksheetId}</b><ol>${answers.map(a=>`<li>${a}</li>`).join('')}</ol>`;
+
+  // Save so upload.html (a separate page) can send it to the grading
+  // endpoint -- worksheets are randomized client-side with no server-side
+  // record, so this is the only copy of "what's actually correct" for
+  // this specific worksheet instance.
+  try {
+    const plainAnswers = answers.map(a => a.replace(/<[^>]+>/g, ''));
+    localStorage.setItem('hk_maths_answer_key', JSON.stringify({
+      worksheetId,
+      answers: plainAnswers,
+      savedAt: Date.now()
+    }));
+  } catch (e) {}
 }
 
 function newWorksheet(){
