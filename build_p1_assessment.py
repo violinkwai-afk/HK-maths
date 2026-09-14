@@ -351,7 +351,7 @@ function renderO(data){
         </div>
         <div class="o-colform">
           <div class="o-colform-label">Column form</div>
-          <div class="workbox" style="width:100px; height:80px;"></div>
+          <div class="workbox" style="width:110px; height:100px;"></div>
         </div>
       </div>
       <div class="o-conclude">∴ ${q.concludeTemplate('___')}</div>
@@ -378,7 +378,7 @@ function build(){
   n = 1; const N = buildN(ans, n); n = N.nextN;
   n = 1; const O = buildO(ans, n); n = O.nextN;
 
-  document.getElementById('sheet').innerHTML = `
+  const sheetHTML = `
     <div class="paper-title">Mathematics First Assessment Practice</div>
     <div class="paper-sub2">Name: ______________&nbsp;&nbsp;&nbsp; Class: G.1___&nbsp;&nbsp;&nbsp; Marks: ____</div>
     <div class="paper-sub">TIME ALLOWED: 45 MINUTES</div>
@@ -409,16 +409,20 @@ function build(){
 
     <div class="footnote">Take one clear photo of this whole page and send it back once done.</div>
   `;
-  document.getElementById('answerBox').innerHTML = `<b>Answer key</b><ol>${ans.map(a=>`<li>${a}</li>`).join('')}</ol>`;
+  const answerHTML = `<ol>${ans.map(a=>`<li>${a}</li>`).join('')}</ol>`;
+  return { sheetHTML, answerHTML };
 }
 
-document.getElementById('genBtn').onclick = build;
-document.getElementById('printBtn').onclick = () => window.print();
-document.getElementById('answerBtn').onclick = () => {
-  const box = document.getElementById('answerBox');
-  box.style.display = box.style.display === 'block' ? 'none' : 'block';
-};
-build();
+function renderAndShow(){
+  const r = build();
+  document.getElementById('sheet').innerHTML = r.sheetHTML;
+  document.getElementById('answerBox').innerHTML = r.answerHTML;
+}
+
+if (typeof document !== 'undefined' && document.getElementById('genBtn')) {
+  document.getElementById('genBtn').onclick = renderAndShow;
+  document.getElementById('printBtn').onclick = () => window.print();
+}
 """
 
 CSS = r"""
@@ -433,7 +437,6 @@ body{background:var(--bg); color:var(--ink); font-family:-apple-system,"Segoe UI
 button{font-family:inherit; font-size:.95rem; font-weight:700; padding:12px 18px; border-radius:10px; border:1px solid transparent; cursor:pointer;}
 #genBtn{background:var(--accent); color:#fff;}
 #printBtn{background:var(--ink); color:var(--bg);}
-#answerBtn{background:transparent; color:var(--ink); border-color:var(--border);}
 .sheet{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px 20px;}
 .paper-title{text-align:center; font-size:1.05rem; font-weight:700; margin:0 0 2px;}
 .paper-sub2{text-align:center; font-size:.8rem; color:var(--muted); margin-bottom:3px;}
@@ -442,7 +445,7 @@ button{font-family:inherit; font-size:.95rem; font-weight:700; padding:12px 18px
 .section-title:first-of-type{margin-top:0;}
 .q{margin-bottom:8px; font-size:.88rem; line-height:1.35;}
 .q-text{font-size:.88rem; margin-bottom:4px; line-height:1.3;}
-.ans-line{border-bottom:1.5px solid var(--line); width:90px; height:18px; display:inline-block; vertical-align:middle;}
+.ans-line{border-bottom:1.5px solid var(--line); width:90px; height:30px; display:inline-block; vertical-align:middle;}
 
 .dbs-table{width:100%; border-collapse:collapse; margin:6px 0 10px; font-size:.82rem;}
 .dbs-table th,.dbs-table td{border:1.5px solid var(--line); padding:4px 6px; text-align:center;}
@@ -483,7 +486,9 @@ button{font-family:inherit; font-size:.95rem; font-weight:700; padding:12px 18px
 .o-conclude{font-size:.85rem; margin-top:3px;}
 
 .footnote{margin-top:18px; font-size:.7rem; color:var(--muted); text-align:center; border-top:1px dashed var(--border); padding-top:10px;}
-#answerBox{display:none; margin-top:16px; padding:16px 18px; background:var(--accent-soft); border:1px solid var(--accent); border-radius:12px; font-size:.85rem;}
+#answerDetails{margin-top:16px; padding:14px 18px; background:var(--accent-soft); border:1px solid var(--accent); border-radius:12px; font-size:.85rem;}
+#answerDetails summary{font-weight:700; cursor:pointer;}
+#answerBox{margin-top:10px;}
 #answerBox ol{margin:8px 0 0; padding-left:20px; line-height:1.7;}
 @media print { .no-print{display:none;} .sheet{border:none; padding:0;} body{background:#fff;} }
 """
@@ -493,25 +498,57 @@ with open("/tmp/claude-115/-var-www-my-project/4b3bebf6-d9c7-45d8-9565-5e9d55381
 with open("/tmp/claude-115/-var-www-my-project/4b3bebf6-d9c7-45d8-9565-5e9d553816ca/scratchpad/dbs_js_render.js") as f:
     render_js = f.read()
 
-full_html = f"""<title>P1 Assessment Practice</title>
+import subprocess
+
+# Pre-render one instance server-side (via Node) so the page has real,
+# visible content the moment it opens -- some viewers (e.g. chat apps'
+# built-in file preview) don't execute JavaScript at all, so the sheet
+# and answer key must not depend on a client-side build() call to exist.
+node_script = f"""
+{core_js}
+{render_js}
+{MAIN_JS}
+console.log(JSON.stringify(build()));
+"""
+node_script_path = "/tmp/claude-115/-var-www-my-project/4b3bebf6-d9c7-45d8-9565-5e9d553816ca/scratchpad/dbs_prerender.js"
+with open(node_script_path, "w", encoding="utf-8") as f:
+    f.write(node_script)
+result = subprocess.run(["node", node_script_path], capture_output=True, text=True, check=True)
+prerendered = json.loads(result.stdout)
+sheet_html = prerendered["sheetHTML"]
+answer_html = prerendered["answerHTML"]
+
+full_html = f"""<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P1 Assessment Practice</title>
 <style>
 {CSS}
 </style>
+</head>
+<body>
 
 <div class="toolbar no-print">
-  <button id="genBtn">🔄 New test</button>
-  <button id="printBtn">🖨️ Print / Save as PDF</button>
-  <button id="answerBtn">🔑 Answer key</button>
+  <button id="genBtn">New test</button>
+  <button id="printBtn">Print / Save as PDF</button>
 </div>
 
-<div class="sheet" id="sheet"></div>
-<div id="answerBox"></div>
+<div class="sheet" id="sheet">{sheet_html}</div>
+
+<details class="no-print" id="answerDetails">
+  <summary>Answer key</summary>
+  <div id="answerBox">{answer_html}</div>
+</details>
 
 <script>
 {core_js}
 {render_js}
 {MAIN_JS}
 </script>
+</body>
+</html>
 """
 
 out_path = "/home/claude_user/hk-maths/website/p1-assessment.html"
