@@ -4,121 +4,111 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>小小學習家</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
 <style>
   :root{
-    /* Theme 1 — soft pink + pale warm yellow (default) */
-    --primary:#f5a9b8; --primary-soft:#fdecef; --primary-ink:#c25c72;
-    --secondary:#fff3c9; --secondary-soft:#fff8de; --secondary-ink:#a9821f;
-    --bg:#fffdfc; --card:#ffffff; --text:#26364d; --muted:#8b96a6;
-    --card-border: rgba(38,54,77,0.06);
-    --card-shadow: 0 4px 18px rgba(38,54,77,0.05);
+    --pink:#F5A9B8; --yellow:#FFF3C9; --bg:#FFF9FA; --white:#FFFFFF; --text:#26364D;
+    --muted: rgba(38,54,77,0.55);
+    --muted-soft: rgba(38,54,77,0.4);
+    --line: rgba(38,54,77,0.08);
+    --shadow: 0 2px 10px rgba(38,54,77,0.05);
   }
-  :root[data-theme="blue"]{
-    --primary:#78b9e8; --primary-soft:#eaf5fc; --primary-ink:#2f75ac;
-    --secondary:#ffffff; --secondary-soft:#eef4f9; --secondary-ink:#4c7fa8;
-    --bg:#f7fbfe;
-  }
-  :root[data-theme="mint"]{
-    --primary:#79c8b9; --primary-soft:#eaf8f5; --primary-ink:#2f8570;
-    --secondary:#eeeaf9; --secondary-soft:#f4f1fc; --secondary-ink:#6a5aa8;
-    --bg:#fcfdfc;
-  }
-
   *{box-sizing:border-box;}
   body{
     margin:0; background:var(--bg); color:var(--text);
-    font-family:"Noto Sans TC",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+    font-family:"Noto Sans TC","PingFang TC",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    -webkit-font-smoothing:antialiased;
   }
-  .page{max-width:390px; margin:0 auto; padding:18px 18px 40px;}
+  .page{max-width:390px; margin:0 auto; padding:16px 20px 32px;}
 
-  .header{display:flex; justify-content:space-between; align-items:center; padding-top:6px;}
-  .brand{font-size:1.05rem; font-weight:700; color:var(--text);}
-  .brand-tag{font-size:.68rem; color:var(--muted); margin-top:2px; letter-spacing:.02em;}
+  /* ---- header ---- */
+  .header{display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;}
+  .brand{font-size:15px; font-weight:700; color:var(--text);}
+  .brand-tag{font-size:11px; color:var(--muted); margin-top:1px;}
   .menu-btn{
-    width:34px; height:34px; border-radius:10px; background:var(--card);
-    border:1px solid var(--card-border); box-shadow:var(--card-shadow);
-    display:flex; align-items:center; justify-content:center; cursor:pointer;
-    transition: transform .18s ease;
+    width:30px; height:30px; border-radius:9px; background:var(--white);
+    box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center;
   }
-  .menu-btn:hover{ transform: translateY(-1px); }
 
-  .welcome{margin-top:22px; display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
-  .welcome-title{font-size:1.25rem; font-weight:700; color:var(--text);}
-  .welcome-sub{font-size:.8rem; color:var(--muted); margin-top:5px; line-height:1.55;}
-  .doodle{flex-shrink:0; margin-top:4px; color:var(--primary); opacity:.6;}
+  /* ---- greeting ---- */
+  .welcome{margin-bottom:16px;}
+  .welcome-title{font-size:clamp(22px,6.5vw,26px); font-weight:700; color:var(--text); line-height:1.25;}
+  .welcome-sub{font-size:13px; color:var(--muted); margin-top:4px; line-height:1.5;}
 
-  .cards{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:18px;}
+  /* ---- main action cards ---- */
+  .cards{display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px;}
   .card{
-    border-radius:18px; padding:16px 14px; position:relative;
-    border:1px solid var(--card-border); box-shadow:var(--card-shadow);
-    text-decoration:none; display:block; transition: transform .18s ease;
+    border-radius:16px; padding:12px 12px; position:relative;
+    text-decoration:none; display:block; min-height:105px;
   }
-  .card:hover{ transform: translateY(-1px); }
-  .card1{background:var(--primary);}
-  .card2{background:var(--secondary);}
+  .card1{background:var(--pink);}
+  .card2{background:var(--yellow);}
   .card-icon{
-    width:38px; height:38px; border-radius:12px; background:rgba(255,255,255,.55);
-    display:flex; align-items:center; justify-content:center; margin-bottom:12px;
+    width:34px; height:34px; border-radius:10px; background:rgba(255,255,255,.6);
+    display:flex; align-items:center; justify-content:center; margin-bottom:8px;
   }
-  .card-title{font-size:.95rem; font-weight:700; color:var(--text);}
-  .card-sub{font-size:.68rem; color:var(--muted); margin-top:2px;}
-  .card-arrow{position:absolute; top:16px; right:14px; font-size:1rem; color:var(--muted);}
+  .card-title{font-size:15px; font-weight:700; color:var(--text); line-height:1.3;}
+  .card-sub{font-size:11px; color:var(--muted); margin-top:2px;}
+  .card-arrow{position:absolute; top:12px; right:12px; font-size:13px; color:var(--muted-soft);}
 
-  .section-title{font-size:.82rem; font-weight:700; color:var(--text); margin-top:22px; margin-bottom:8px;}
+  /* ---- section heading ---- */
+  .section-title{font-size:14px; font-weight:700; color:var(--text); margin:0 0 8px;}
 
+  /* ---- recent ---- */
   .recent, .recent-empty{
-    background:var(--card); border-radius:16px; border:1px solid var(--card-border);
-    box-shadow:var(--card-shadow); padding:13px 15px;
+    background:var(--white); border-radius:14px; box-shadow:var(--shadow);
   }
-  .recent{display:flex; align-items:center; gap:11px;}
+  .recent{display:flex; align-items:center; gap:9px; padding:10px 12px; min-height:60px;}
   .recent-icon{
-    width:32px; height:32px; border-radius:9px; background:var(--primary-soft);
-    display:flex; align-items:center; justify-content:center; flex-shrink:0; color:var(--primary-ink);
+    width:26px; height:26px; border-radius:8px; background:var(--yellow);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
   }
-  .recent-title{font-weight:700; font-size:.84rem; color:var(--text);}
-  .recent-sub{font-size:.68rem; color:var(--muted); margin-top:1px;}
+  .recent-title{font-weight:700; font-size:12.5px; color:var(--text);}
+  .recent-sub{font-size:11px; color:var(--muted); margin-top:1px;}
   .recent-btn{
-    margin-left:auto; background:var(--primary-soft); color:var(--primary-ink);
-    font-size:.68rem; font-weight:700; padding:6px 11px; border-radius:16px; white-space:nowrap;
+    margin-left:auto; background:var(--pink); color:var(--text);
+    font-size:11px; font-weight:700; padding:5px 10px; border-radius:14px; white-space:nowrap;
+  }
+  .recent-empty{font-size:12px; color:var(--muted); padding:12px 14px; min-height:60px; display:flex; align-items:center;}
+
+  .section{margin-top:20px;}
+
+  /* ---- quick tools ---- */
+  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .gitem{
+    background:var(--white); border-radius:13px; padding:10px 11px; min-height:72px;
+    box-shadow:var(--shadow); display:flex; flex-direction:column; justify-content:center;
     text-decoration:none;
   }
-  .recent-empty{font-size:.75rem; color:var(--muted);}
+  .gitem-icon{width:22px; height:22px; border-radius:7px; display:flex; align-items:center; justify-content:center; margin-bottom:6px;}
+  .gitem-icon.p{background:var(--pink);}
+  .gitem-icon.s{background:var(--yellow);}
+  .gitem-title{font-weight:700; font-size:12.5px; color:var(--text);}
+  .gitem-sub{font-size:11px; color:var(--muted); margin-top:1px; line-height:1.3;}
 
-  .grid2{display:grid; grid-template-columns:1fr 1fr; gap:9px;}
-  .gitem{
-    background:var(--card); border-radius:14px; padding:11px 12px;
-    border:1px solid var(--card-border); box-shadow:var(--card-shadow);
-    display:flex; align-items:center; gap:9px; text-decoration:none;
-    transition: transform .18s ease;
-  }
-  .gitem:hover{ transform: translateY(-1px); }
-  .gitem-icon{width:28px; height:28px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0;}
-  .gitem-icon.p{background:var(--primary-soft); color:var(--primary-ink);}
-  .gitem-icon.s{background:var(--secondary-soft); color:var(--secondary-ink);}
-  .gitem-title{font-weight:700; font-size:.76rem; color:var(--text);}
-  .gitem-sub{font-size:.6rem; color:var(--muted); margin-top:1px; line-height:1.3;}
-
+  /* ---- suggestion ---- */
   .suggest{
-    margin-top:22px; background:var(--card); border-radius:14px; padding:12px 15px;
-    border:1px solid var(--card-border); box-shadow:var(--card-shadow);
-    display:flex; align-items:center; gap:12px; text-decoration:none;
+    margin-top:20px; background:var(--white); border-radius:13px; padding:10px 13px; min-height:58px;
+    box-shadow:var(--shadow); display:flex; align-items:center; gap:10px; text-decoration:none;
   }
-  .suggest-label{font-size:.62rem; color:var(--muted); font-weight:600;}
-  .suggest-title{font-size:.85rem; font-weight:700; color:var(--text); margin-top:1px;}
-  .suggest-sub{font-size:.68rem; color:var(--primary-ink); margin-top:1px;}
-  .suggest-arrow{margin-left:auto; color:var(--muted);}
+  .suggest-label{font-size:10.5px; color:var(--muted); font-weight:600;}
+  .suggest-title{font-size:13px; font-weight:700; color:var(--text); margin-top:1px;}
+  .suggest-sub{font-size:11px; color:var(--muted); margin-top:1px;}
+  .suggest-arrow{margin-left:auto; color:var(--muted-soft); font-size:13px;}
 
-  .footnote{text-align:center; font-size:.66rem; color:var(--muted); margin-top:28px; line-height:1.6;}
+  .footnote{text-align:center; font-size:10.5px; color:var(--muted-soft); margin-top:22px; line-height:1.6;}
 
-  /* Desktop: centred column, not a stretched phone screen */
+  /* ---- bottom nav ---- */
+  .navbar{
+    max-width:390px; margin:24px auto 0; background:var(--white); border-radius:16px;
+    box-shadow:var(--shadow); padding:8px 0; display:flex; justify-content:space-around;
+  }
+  .navitem{display:flex; flex-direction:column; align-items:center; gap:2px; font-size:10.5px; color:var(--muted); font-weight:600;}
+  .navitem.active{color:var(--text);}
+
   @media (min-width: 760px){
-    .page{max-width:800px; padding:40px 24px 60px;}
-    .welcome-title{font-size:1.5rem;}
-    .cards{grid-template-columns:1fr 1fr; gap:16px;}
-    .card{padding:24px 22px;}
-    .card-icon{width:44px; height:44px;}
-    .grid2{grid-template-columns:repeat(4,1fr); gap:14px;}
+    .page{max-width:760px; padding:36px 24px 48px;}
+    .grid2{grid-template-columns:repeat(4,1fr);}
   }
 </style>
 </head>
@@ -131,59 +121,69 @@
         <div class="brand-tag">出卷 · 對卷 · 再出卷</div>
       </div>
       <div class="menu-btn" aria-label="menu">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M4 12h16M4 17h16" stroke-width="2" stroke-linecap="round"/></svg>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h16M4 12h16M4 17h16" stroke-width="2" stroke-linecap="round"/></svg>
       </div>
     </div>
 
     <div class="welcome">
-      <div>
-        <div class="welcome-title">今日想做咩？</div>
-        <div class="welcome-sub">出一份卷，或者影相上載，<br>我幫你處理。</div>
-      </div>
-      <div class="doodle">
-        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 4v3M12 17v3M4 12h3M17 12h3M6.5 6.5l2 2M15.5 15.5l2 2M17.5 6.5l-2 2M8.5 15.5l-2 2" stroke-width="1.6" stroke-linecap="round"/></svg>
-      </div>
+      <div class="welcome-title">今日想做咩？</div>
+      <div class="welcome-sub">出一份卷，或者影相上載，我幫你處理。</div>
     </div>
 
     <div class="cards">
       <a class="card card1" href="generator.html">
-        <div class="card-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--primary-ink)"><path d="M12 3v11M7 10l5 5 5-5M5 19h14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text)"><path d="M12 3v11M7 10l5 5 5-5M5 19h14" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
         <div class="card-title">下載試卷</div>
         <div class="card-sub">選擇科目／年級</div>
         <div class="card-arrow">→</div>
       </a>
       <a class="card card2" href="upload.html">
-        <div class="card-icon"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="var(--secondary-ink)"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.2" stroke-width="2"/></svg></div>
+        <div class="card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text)"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.2" stroke-width="2"/></svg></div>
         <div class="card-title">上載試卷</div>
         <div class="card-sub">影相或選擇相片</div>
         <div class="card-arrow">→</div>
       </a>
     </div>
 
-    <div class="section-title">最近使用</div>
-    <div class="recent-empty">完成一份試卷後，結果會顯示喺呢度。</div>
+    <div class="section">
+      <div class="section-title">最近使用</div>
+      <div class="recent-empty">完成一份試卷後，結果會顯示喺呢度。</div>
+    </div>
 
-    <div class="section-title">其他功能</div>
-    <div class="grid2">
-      <a class="gitem" href="coming-soon.html?feature=analysis">
-        <div class="gitem-icon p"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="7.5" stroke-width="2"/><circle cx="12" cy="12" r="3.8" stroke-width="2"/><circle cx="12" cy="12" r="0.9" fill="currentColor" stroke-width="0"/></svg></div>
-        <div><div class="gitem-title">錯題分析</div><div class="gitem-sub">找出需要加強嘅地方</div></div>
-      </a>
-      <a class="gitem" href="generator.html">
-        <div class="gitem-icon s"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H12v16H5.5c-.8 0-1.5-.7-1.5-1.5v-13z" stroke-width="2" stroke-linejoin="round"/><path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H12v16h6.5c.8 0 1.5-.7 1.5-1.5v-13z" stroke-width="2" stroke-linejoin="round"/></svg></div>
-        <div><div class="gitem-title">練習題庫</div><div class="gitem-sub">按科目／年級揀卷</div></div>
-      </a>
-      <a class="gitem" href="coming-soon.html?feature=notes">
-        <div class="gitem-icon s"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 4h9l4 4v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" stroke-width="2" stroke-linejoin="round"/><path d="M14 4v4h4" stroke-width="2" stroke-linejoin="round"/><path d="M8 12h8M8 15.5h5.5" stroke-width="1.8" stroke-linecap="round"/></svg></div>
-        <div><div class="gitem-title">筆記</div><div class="gitem-sub">重點整理 · 自訂筆記</div></div>
-      </a>
-      <a class="gitem" href="#">
-        <div class="gitem-icon p"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="6" y="7" width="13" height="14" rx="2" stroke-width="2"/><path d="M9 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2" stroke-width="2"/></svg></div>
-        <div><div class="gitem-title">Flash Cards</div><div class="gitem-sub">輕鬆溫習 · 打好基礎</div></div>
-      </a>
+    <div class="section">
+      <div class="section-title">其他功能</div>
+      <div class="grid2">
+        <a class="gitem" href="coming-soon.html?feature=analysis">
+          <div class="gitem-icon p"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text)"><circle cx="12" cy="12" r="7.5" stroke-width="2"/><circle cx="12" cy="12" r="3.8" stroke-width="2"/><circle cx="12" cy="12" r="0.9" fill="var(--text)" stroke-width="0"/></svg></div>
+          <div class="gitem-title">錯題分析</div>
+          <div class="gitem-sub">找出需要加強嘅地方</div>
+        </a>
+        <a class="gitem" href="generator.html">
+          <div class="gitem-icon s"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text)"><path d="M4 5.5C4 4.7 4.7 4 5.5 4H12v16H5.5c-.8 0-1.5-.7-1.5-1.5v-13z" stroke-width="2" stroke-linejoin="round"/><path d="M20 5.5c0-.8-.7-1.5-1.5-1.5H12v16h6.5c.8 0 1.5-.7 1.5-1.5v-13z" stroke-width="2" stroke-linejoin="round"/></svg></div>
+          <div class="gitem-title">練習題庫</div>
+          <div class="gitem-sub">按科目／年級揀卷</div>
+        </a>
+        <a class="gitem" href="coming-soon.html?feature=notes">
+          <div class="gitem-icon s"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text)"><path d="M6 4h9l4 4v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" stroke-width="2" stroke-linejoin="round"/><path d="M14 4v4h4" stroke-width="2" stroke-linejoin="round"/><path d="M8 12h8M8 15.5h5.5" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+          <div class="gitem-title">筆記</div>
+          <div class="gitem-sub">重點整理 · 自訂筆記</div>
+        </a>
+        <a class="gitem" href="#">
+          <div class="gitem-icon p"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--text)"><rect x="6" y="7" width="13" height="14" rx="2" stroke-width="2"/><path d="M9 7V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-2" stroke-width="2"/></svg></div>
+          <div class="gitem-title">Flash Cards</div>
+          <div class="gitem-sub">輕鬆溫習 · 打好基礎</div>
+        </a>
+      </div>
     </div>
 
     <p class="footnote">呢個係獨立練習工具，同任何學校或教育局都冇關係。</p>
+
+    <div class="navbar">
+      <div class="navitem active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 11.5 12 4l8 7.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 10v9a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-9" stroke-width="2" stroke-linejoin="round"/></svg>首頁</div>
+      <div class="navitem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 3.5h7l3 3v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z" stroke-width="2" stroke-linejoin="round"/><path d="M14 3.5v3h3" stroke-width="2" stroke-linejoin="round"/></svg>試卷</div>
+      <div class="navitem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 4h9l4 4v12a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" stroke-width="2" stroke-linejoin="round"/><path d="M14 4v4h4" stroke-width="2" stroke-linejoin="round"/></svg>筆記</div>
+      <div class="navitem"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8.5" r="3.5" stroke-width="2"/><path d="M5 20c0-3.6 3.1-6.5 7-6.5s7 2.9 7 6.5" stroke-width="2" stroke-linecap="round"/></svg>我的</div>
+    </div>
   </div>
 </body>
 </html>
