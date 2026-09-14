@@ -32,7 +32,11 @@
   .welcome{margin-top:26px;}
   .headline-row{display:flex; align-items:center; justify-content:space-between;}
   .headline{font-size:1.8rem; font-weight:800; color:var(--ink); line-height:1.3;}
-  .sun{width:64px; height:64px; flex-shrink:0;}
+  .sun-wrap{position:relative; flex-shrink:0; width:88px; height:88px;}
+  .sun{width:88px; height:88px;}
+  .cloud{position:absolute;}
+  .cloud1{top:-10px; left:-14px; width:40px;}
+  .cloud2{top:2px; right:-16px; width:30px;}
   .subtext{font-size:.9rem; color:var(--muted); margin-top:8px; line-height:1.55;}
 
   .cards{display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:22px;}
@@ -89,20 +93,28 @@
     <div class="welcome">
       <div class="headline-row">
         <div class="headline">準備好<br>開始了嗎？</div>
-        <svg class="sun" viewBox="0 0 64 64">
-          <circle cx="32" cy="32" r="16" fill="#f6c453"/>
-          <line x1="32" y1="6" x2="32" y2="0" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
-          <line x1="47.6" y1="12.4" x2="51.7" y2="8.3" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
-          <line x1="57.6" y1="32" x2="63.6" y2="32" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
-          <line x1="47.6" y1="51.6" x2="51.7" y2="55.7" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
-          <line x1="32" y1="57.6" x2="32" y2="63.6" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
-          <line x1="16.4" y1="51.6" x2="12.3" y2="55.7" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
-          <line x1="6.4" y1="32" x2="0.4" y2="32" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
-          <line x1="16.4" y1="12.4" x2="12.3" y2="8.3" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
-          <circle cx="26" cy="30" r="2" fill="#3a2b2e"/>
-          <circle cx="38" cy="30" r="2" fill="#3a2b2e"/>
-          <path d="M24 38 Q32 44 40 38" stroke="#3a2b2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-        </svg>
+        <div class="sun-wrap">
+          <svg class="cloud cloud1" viewBox="0 0 60 36">
+            <path d="M 10,30 Q 2,30 2,22 Q 2,15 10,14 Q 11,6 20,6 Q 27,0 35,5 Q 43,2 47,9 Q 55,9 56,17 Q 58,19 58,24 Q 58,30 50,30 Z" fill="#ffffff"/>
+          </svg>
+          <svg class="cloud cloud2" viewBox="0 0 60 36">
+            <path d="M 10,30 Q 2,30 2,22 Q 2,15 10,14 Q 11,6 20,6 Q 27,0 35,5 Q 43,2 47,9 Q 55,9 56,17 Q 58,19 58,24 Q 58,30 50,30 Z" fill="#ffffff"/>
+          </svg>
+          <svg class="sun" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="16" fill="#f6c453"/>
+            <line x1="32" y1="6" x2="32" y2="0" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
+            <line x1="47.6" y1="12.4" x2="51.7" y2="8.3" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
+            <line x1="57.6" y1="32" x2="63.6" y2="32" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
+            <line x1="47.6" y1="51.6" x2="51.7" y2="55.7" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
+            <line x1="32" y1="57.6" x2="32" y2="63.6" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
+            <line x1="16.4" y1="51.6" x2="12.3" y2="55.7" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
+            <line x1="6.4" y1="32" x2="0.4" y2="32" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
+            <line x1="16.4" y1="12.4" x2="12.3" y2="8.3" stroke="#f6c453" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="26" cy="30" r="2" fill="#3a2b2e"/>
+            <circle cx="38" cy="30" r="2" fill="#3a2b2e"/>
+            <path d="M24 38 Q32 44 40 38" stroke="#3a2b2e" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
       </div>
       <div class="subtext">上載試卷 · 即時對答案 · 找出弱點 · 推介練習</div>
     </div>
