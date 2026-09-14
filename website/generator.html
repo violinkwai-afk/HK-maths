@@ -130,7 +130,14 @@ function genMissingDigitSub(){
   const x=randInt(4,9), y=randInt(0,9);
   const top=x*10+8, sub=30+y, result=top-sub;
   if(result<10||result>98) return genMissingDigitSub();
-  return {type:"missing_digit_sub", topOnes:8, subTens:3, result, text:`_8 - 3_ = ${result}`};
+  // The rendered puzzle shows "_8 - 3_ = result" with the tens digit of the
+  // top number (x) and the ones digit of the subtracted number (y) left
+  // blank for the child to fill in. The answer key MUST state x and y
+  // explicitly -- earlier this only repeated the puzzle pattern with
+  // underscores, which tells a parent/grader nothing about what the
+  // correct digits actually are.
+  return {type:"missing_digit_sub", topTens:x, topOnes:8, subTens:3, subOnes:y, result,
+    text:`${x}8 - 3${y} = ${result} (top blank = ${x}, bottom blank = ${y})`};
 }
 function genWordProblem(){
   const name = ["Tom","Mary","Peter","Ann"][randInt(0,3)];
@@ -155,7 +162,7 @@ function renderSheet(worksheetId, questions){
   questions.forEach(q=>{
     if(q.type==="equation"){
       s1.push(`<div class="q"><div class="q-text"><span class="q-num">${n}.</span> ${q.text}</div><div class="ans-line"></div></div>`);
-      answers.push(`${n}. ${q.text} <b>${q.answer}</b>`);
+      answers.push(`${q.text} <b>${q.answer}</b>`);
       n++;
     }
   });
@@ -168,14 +175,14 @@ function renderSheet(worksheetId, questions){
           <div class="line"></div>
           <div class="row result">${String(q.result).padStart(2,'0')}</div>
         </div></div>`);
-      answers.push(`${n}. ${q.text}`);
+      answers.push(q.text);
       n++;
     }
   });
   questions.forEach(q=>{
     if(q.type==="word_problem"){
       s3.push(`<div class="q wide"><div class="q-text"><span class="q-num">${n}.</span> ${q.text}</div><div class="ans-line wide"></div></div>`);
-      answers.push(`${n}. <b>${q.answer}</b>`);
+      answers.push(`<b>${q.answer}</b>`);
       n++;
     }
   });
