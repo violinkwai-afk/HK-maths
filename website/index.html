@@ -30,7 +30,7 @@
   .mood{background:var(--card); border-radius:20px; padding:9px 15px; font-size:.85rem; font-weight:600; color:var(--ink); white-space:nowrap; display:flex; align-items:center; gap:6px;}
 
   .welcome{margin-top:26px;}
-  .headline-row{display:flex; align-items:center; justify-content:space-between;}
+  .headline-row{display:flex; align-items:flex-start; justify-content:space-between;}
   .headline{font-size:1.8rem; font-weight:800; color:var(--ink); line-height:1.3;}
   .sun-wrap{position:relative; flex-shrink:0; width:140px; height:130px;}
   .subtext{font-size:.9rem; color:var(--muted); margin-top:8px; line-height:1.55;}
@@ -107,9 +107,9 @@
               <circle cx="98" cy="35" r="2.6" fill="#3a2b2e"/>
               <path d="M79 45 Q90 53 101 45" stroke="#3a2b2e" stroke-width="3" fill="none" stroke-linecap="round"/>
             </g>
-            <!-- Mount Fuji, light blue, sitting lower/behind -->
-            <path d="M 20,120 L 62,52 L 68,62 L 74,52 L 116,120 Z" fill="#aee0f0"/>
-            <path d="M 68,62 L 62,52 L 58,58 L 63,66 L 60,72 L 68,80 L 76,72 L 73,66 L 78,58 Z" fill="#ffffff"/>
+            <!-- Mount Fuji, light blue base with white upper half -->
+            <path d="M 20,120 L 68,50 L 116,120 Z" fill="#aee0f0"/>
+            <path d="M 68,50 L 44,85 L 50,90 L 44,96 L 68,110 L 92,96 L 86,90 L 92,85 Z" fill="#ffffff"/>
             <!-- clouds, in front of the mountain -->
             <path d="M 8,108 Q -2,108 -2,98 Q -2,89 8,88 Q 9,79 20,79 Q 28,72 38,78 Q 47,74 52,83 Q 62,83 63,93 Q 66,95 66,101 Q 66,108 56,108 Z" fill="#ffffff"/>
             <path d="M 96,100 Q 88,100 88,92 Q 88,85 96,84 Q 97,77 106,77 Q 112,71 120,76 Q 127,73 131,80 Q 139,80 140,88 Q 142,90 142,95 Q 142,100 134,100 Z" fill="#ffffff"/>
