@@ -274,10 +274,14 @@ with open("/tmp/claude-115/-var-www-my-project/4b3bebf6-d9c7-45d8-9565-5e9d55381
 
 RENDER_JS = r"""
 function renderA(data){
+  // r.blank names which column is BLANK (needs filling in); r.given holds
+  // the value for the OTHER column. Do not invert these conditions --
+  // this exact swap (numerals shown in the Words column and vice versa)
+  // has regressed before when this script was re-run wholesale.
   const rows = data.html.map(r => {
-    const w = r.blank==='numeral' ? '' : r.given;
-    const num = r.blank==='numeral' ? '<span class="ans-line" style="width:70px;"></span>' : r.given;
-    return `<tr><td>${r.num}</td><td>${r.blank==='words'?r.given:'<span class="ans-line" style="width:130px;"></span>'}</td><td>${r.blank==='numeral'?r.given:'<span class="ans-line" style="width:70px;"></span>'}</td></tr>`;
+    const wordsCell = r.blank==='numeral' ? r.given : '<span class="ans-line" style="width:130px;"></span>';
+    const numeralCell = r.blank==='words' ? r.given : '<span class="ans-line" style="width:70px;"></span>';
+    return `<tr><td>${r.num}</td><td>${wordsCell}</td><td>${numeralCell}</td></tr>`;
   }).join('');
   return `<table class="dbs-table"><tr><th>#</th><th>Words</th><th>Numerals</th></tr>${rows}</table>`;
 }
@@ -346,7 +350,7 @@ function renderO(data){
       <div class="q-text">${i+1}. ${q.text}</div>
       <div class="o-row">
         <div class="o-equation">
-          ( <span class="ans-line" style="width:50px;"></span> ) <span class="o-op">${opSym==='+'?'○':'○'}</span> ( <span class="ans-line" style="width:50px;"></span> )<br>
+          ( <span class="ans-line" style="width:50px;"></span> ) <span class="o-op">${opSym}</span> ( <span class="ans-line" style="width:50px;"></span> )<br>
           = ( <span class="ans-line" style="width:50px;"></span> ) ${q.unit}
         </div>
         <div class="o-colform">

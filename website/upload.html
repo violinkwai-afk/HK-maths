@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>上載試卷 — 小小學習家</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --primary:#f5a9b8; --primary-soft:#fdecef; --primary-ink:#c25c72;
+    --bg:#fffdfc; --card:#ffffff; --text:#26364d; --muted:#8b96a6;
+    --card-border: rgba(38,54,77,0.06);
+    --card-shadow: 0 4px 18px rgba(38,54,77,0.05);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:"Noto Sans TC",system-ui,Arial,sans-serif;}
+  .page{max-width:390px; margin:0 auto; padding:18px 18px 40px;}
+  .back{display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.82rem; font-weight:600; margin-bottom:18px;}
+  h1{font-size:1.15rem; margin:0 0 6px;}
+  .sub{font-size:.8rem; color:var(--muted); margin:0 0 20px; line-height:1.55;}
+  .dropzone{
+    background:var(--card); border:1.5px dashed var(--primary); border-radius:18px;
+    box-shadow:var(--card-shadow); padding:32px 16px; text-align:center; cursor:pointer;
+  }
+  .dropzone svg{color:var(--primary-ink);}
+  .dropzone p{font-size:.85rem; font-weight:600; margin:12px 0 4px;}
+  .dropzone .hint{font-size:.7rem; color:var(--muted); font-weight:400;}
+  input[type=file]{display:none;}
+  .preview{margin-top:16px; border-radius:14px; overflow:hidden; box-shadow:var(--card-shadow); display:none;}
+  .preview img{display:block; width:100%;}
+  .notice{
+    margin-top:18px; background:var(--primary-soft); color:var(--primary-ink); border-radius:14px;
+    padding:14px 16px; font-size:.78rem; line-height:1.6; display:none;
+  }
+  .submit-btn{
+    width:100%; margin-top:16px; background:var(--primary); color:var(--text); border:none;
+    font-weight:700; font-size:.9rem; padding:13px; border-radius:14px; cursor:pointer; display:none;
+  }
+</style>
+</head>
+<body>
+  <div class="page">
+    <a class="back" href="index.html">← 返去首頁</a>
+    <h1>上載試卷</h1>
+    <p class="sub">影低已經完成嘅試卷，或者揀返部機度嘅相片。</p>
+
+    <label class="dropzone" id="dropzone">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.2" stroke-width="2"/></svg>
+      <p>撳呢度影相 / 揀相片</p>
+      <div class="hint">支援 JPG、PNG</div>
+      <input type="file" id="fileInput" accept="image/*" capture="environment">
+    </label>
+
+    <div class="preview" id="preview"><img id="previewImg" alt=""></div>
+    <button class="submit-btn" id="submitBtn">提交批改</button>
+    <div class="notice" id="notice"></div>
+  </div>
+
+  <script>
+    const fileInput = document.getElementById('fileInput');
+    const preview = document.getElementById('preview');
+    const previewImg = document.getElementById('previewImg');
+    const submitBtn = document.getElementById('submitBtn');
+    const notice = document.getElementById('notice');
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      previewImg.src = URL.createObjectURL(file);
+      preview.style.display = 'block';
+      submitBtn.style.display = 'block';
+      notice.style.display = 'none';
+    });
+
+    submitBtn.addEventListener('click', () => {
+      // Honest placeholder: automatic marking isn't wired up on this static
+      // site yet (needs a deployed grading backend + vision API key). Never
+      // claim a fake "graded" result.
+      notice.textContent = '已經收到你張相！自動改卷功能仲喺開發緊，暫時未可以即時對答案，唔好意思。';
+      notice.style.display = 'block';
+      submitBtn.style.display = 'none';
+    });
+  </script>
+</body>
+</html>
