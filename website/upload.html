@@ -49,16 +49,16 @@
   <div class="page">
     <a class="back" href="index.html">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 5l-7 7 7 7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      返去首頁
+      返回首頁
     </a>
     <h1>上載試卷</h1>
-    <p class="sub">影低已經完成嘅試卷，或者揀返部機度嘅相片。</p>
+    <p class="sub">拍攝已完成的試卷，或選擇裝置中的相片。</p>
 
     <label class="dropzone" id="dropzone">
       <div class="dropzone-icon">
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" stroke-width="2.4" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.2" stroke-width="2.4"/></svg>
       </div>
-      <p>撳呢度影相 / 揀相片</p>
+      <p>點擊此處拍照 / 選擇相片</p>
       <div class="hint">支援 JPG、PNG</div>
       <input type="file" id="fileInput" accept="image/*" capture="environment">
     </label>
@@ -85,7 +85,7 @@
     });
 
     submitBtn.addEventListener('click', () => {
-      notice.textContent = '已經收到你張相！自動改卷功能仲喺開發緊，暫時未可以即時對答案，唔好意思。';
+      notice.textContent = '已收到你的照片！自動批改功能仍在開發中，暫時未能即時核對答案，敬請見諒。';
       notice.style.display = 'block';
       submitBtn.style.display = 'none';
     });
