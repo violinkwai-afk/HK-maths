@@ -34,12 +34,13 @@ async function handleGrade(request, env) {
     return json({ error: "bad_request", message: "請求格式錯誤。" }, 400);
   }
 
-  const { image, mediaType, answerKey } = body;
-  if (!image || !answerKey) {
+  let { image, images, mediaType, answerKey } = body;
+  if (!images && image) images = [{ data: image, mediaType }];
+  if (!images || !images.length || !answerKey) {
     return json({ error: "bad_request", message: "缺少相片或答案key。" }, 400);
   }
 
-  const prompt = `你是一位細心的小學數學老師，正在批改學生完成的練習卷相片。
+  const prompt = `你是一位細心的小學數學老師，正在批改學生完成的練習卷相片。呢份卷可能影咗多張相（例如${images.length}頁），全部都係同一份卷嘅唔同版，請將佢哋當成一份完整嘅卷嚟改。
 
 以下是這份練習卷的正確答案（按題號排列）：
 ${answerKey}

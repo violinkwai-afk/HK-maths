@@ -23,17 +23,32 @@
   .back{display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.85rem; font-weight:700; margin-bottom:20px;}
   h1{font-size:1.3rem; margin:0 0 4px; font-weight:800;}
   .sub{font-size:.85rem; color:var(--muted); margin:0 0 20px; line-height:1.55;}
-  .dropzone{
-    background:var(--card); border:2px dashed var(--pink); border-radius:22px;
-    box-shadow:var(--shadow); padding:32px 16px; text-align:center; cursor:pointer; display:block;
-  }
-  .dropzone-icon{width:56px; height:56px; border-radius:16px; background:var(--pink); color:#fff;
-    display:flex; align-items:center; justify-content:center; margin:0 auto 12px;}
-  .dropzone p{font-size:.95rem; font-weight:700; margin:0 0 4px;}
-  .dropzone .hint{font-size:.75rem; color:var(--muted); font-weight:400;}
+
   input[type=file]{display:none;}
-  .preview{margin-top:20px; border-radius:18px; overflow:hidden; box-shadow:var(--shadow); display:none;}
-  .preview img{display:block; width:100%;}
+
+  .capture-btn{
+    width:100%; background:var(--pink); color:var(--ink); border:none;
+    box-shadow:var(--shadow); border-radius:22px; padding:24px 16px; text-align:center;
+    font-family:inherit; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px;
+  }
+  .capture-btn:active{transform:translateY(1px);}
+  .capture-icon{width:52px; height:52px; border-radius:16px; background:rgba(255,255,255,.55);
+    display:flex; align-items:center; justify-content:center;}
+  .capture-btn .label{font-size:1rem; font-weight:800;}
+  .capture-btn .hint{font-size:.75rem; font-weight:400; color:var(--ink); opacity:.75;}
+  .gallery-link{display:block; text-align:center; margin-top:10px; font-size:.78rem; color:var(--muted); text-decoration:underline;}
+
+  .pages{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:16px;}
+  .page-thumb{position:relative; border-radius:12px; overflow:hidden; box-shadow:var(--shadow); aspect-ratio:3/4; background:var(--card);}
+  .page-thumb img{width:100%; height:100%; object-fit:cover; display:block;}
+  .page-thumb .num{position:absolute; top:4px; left:4px; background:rgba(58,43,46,.75); color:#fff;
+    font-size:.65rem; font-weight:800; padding:2px 6px; border-radius:8px;}
+  .page-thumb .del{position:absolute; top:4px; right:4px; background:rgba(255,255,255,.9); color:var(--pink-ink);
+    font-size:.7rem; font-weight:800; width:20px; height:20px; border-radius:50%; border:none;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;}
+
+  .count-label{font-size:.78rem; color:var(--muted); margin-top:10px; text-align:center;}
+
   .notice{
     margin-top:20px; background:var(--yellow-soft); color:var(--ink); border-radius:16px;
     padding:14px 16px; font-size:.85rem; line-height:1.6; display:none;
@@ -44,6 +59,13 @@
     font-family:inherit; box-shadow:var(--shadow);
   }
   .submit-btn:disabled{opacity:.6; cursor:default;}
+  .answerkey-auto{
+    margin-top:16px; display:none; align-items:center; justify-content:space-between;
+    background:var(--pink-soft); color:var(--pink-ink); border-radius:14px;
+    padding:10px 14px; font-size:.78rem; font-weight:700;
+  }
+  .answerkey-auto button{background:none; border:none; color:var(--pink-ink); text-decoration:underline;
+    font-family:inherit; font-size:.78rem; font-weight:700; padding:0; cursor:pointer; box-shadow:none;}
   .answerkey-box{margin-top:16px; display:none;}
   .answerkey-box textarea{width:100%; min-height:70px; border-radius:14px; border:1px solid rgba(58,43,46,0.15);
     padding:10px 12px; font-family:inherit; font-size:.8rem; color:var(--ink); resize:vertical;}
@@ -55,7 +77,7 @@
   .result-mark{flex-shrink:0; font-weight:800;}
   .result-mark.ok{color:#2f9e5c;}
   .result-mark.no{color:#d9455f;}
-  .result-mark.unsure{color:var(--yellow-ink,#a9821f);}
+  .result-mark.unsure{color:#a9821f;}
   .result-weak{margin-top:12px; padding-top:12px; border-top:1px solid rgba(58,43,46,0.06); font-size:.82rem;}
   .result-weak b{display:block; margin-bottom:4px;}
 </style>
@@ -67,21 +89,29 @@
       返回首頁
     </a>
     <h1>上載試卷</h1>
-    <p class="sub">拍攝已完成的試卷，或選擇裝置中的相片。</p>
+    <p class="sub">撳一下影一頁；試卷有幾多頁就撳幾多下，影完全部頁數再一齊提交。</p>
 
-    <label class="dropzone" id="dropzone">
-      <div class="dropzone-icon">
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" stroke-width="2.4" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.2" stroke-width="2.4"/></svg>
+    <button class="capture-btn" id="captureBtn" type="button">
+      <div class="capture-icon">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" stroke-width="2.4" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.2" stroke-width="2.4"/></svg>
       </div>
-      <p>點擊此處拍照 / 選擇相片</p>
-      <div class="hint">支援 JPG、PNG</div>
-      <input type="file" id="fileInput" accept="image/*">
-    </label>
+      <span class="label" id="captureLabel">影第 1 頁</span>
+      <span class="hint">撳一下即刻開相機</span>
+    </button>
+    <a class="gallery-link" id="galleryLink">或者從相簿揀相片</a>
 
-    <div class="preview" id="preview"><img id="previewImg" alt=""></div>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment">
+    <input type="file" id="galleryInput" accept="image/*" multiple>
 
+    <div class="pages" id="pages"></div>
+    <div class="count-label" id="countLabel"></div>
+
+    <div class="answerkey-auto" id="answerkeyAuto">
+      <span>✓ 已自動帶入呢張試卷嘅答案key</span>
+      <button type="button" id="answerkeyEditLink">編輯</button>
+    </div>
     <div class="answerkey-box" id="answerkeyBox">
-      <p class="answerkey-label">答案key（已從「下載試卷」頁自動帶入；如果係用另一部裝置，請貼上答案key）</p>
+      <p class="answerkey-label">未搵到答案key，請貼上（喺「下載試卷」頁按「查看答案」複製）</p>
       <textarea id="answerkeyInput" placeholder="例如：1. 43 + 26 = 69"></textarea>
     </div>
 
@@ -91,36 +121,75 @@
   </div>
 
   <script>
-    const fileInput = document.getElementById('fileInput');
-    const preview = document.getElementById('preview');
-    const previewImg = document.getElementById('previewImg');
+    const captureBtn = document.getElementById('captureBtn');
+    const captureLabel = document.getElementById('captureLabel');
+    const galleryLink = document.getElementById('galleryLink');
+    const cameraInput = document.getElementById('cameraInput');
+    const galleryInput = document.getElementById('galleryInput');
+    const pagesEl = document.getElementById('pages');
+    const countLabel = document.getElementById('countLabel');
     const submitBtn = document.getElementById('submitBtn');
     const notice = document.getElementById('notice');
+    const answerkeyAuto = document.getElementById('answerkeyAuto');
+    const answerkeyEditLink = document.getElementById('answerkeyEditLink');
     const answerkeyBox = document.getElementById('answerkeyBox');
     const answerkeyInput = document.getElementById('answerkeyInput');
     const resultCard = document.getElementById('resultCard');
-    let selectedFile = null;
+    let pageFiles = [];
+    let hasAutoKey = false;
+    let editingKey = false;
 
-    // Pull in the answer key generator.html saved for the most recent worksheet.
     try {
       const saved = JSON.parse(localStorage.getItem('hk_maths_answer_key') || 'null');
-      if (saved && saved.answers) {
+      if (saved && saved.answers && saved.answers.length) {
         answerkeyInput.value = saved.answers.join('\n');
+        hasAutoKey = true;
       }
     } catch (e) {}
 
-    fileInput.addEventListener('change', () => {
-      const file = fileInput.files[0];
-      if (!file) return;
-      selectedFile = file;
-      previewImg.src = URL.createObjectURL(file);
-      preview.style.display = 'block';
-      answerkeyBox.style.display = 'block';
-      submitBtn.style.display = 'block';
-      submitBtn.disabled = false;
-      submitBtn.textContent = '提交批改';
+    answerkeyEditLink.addEventListener('click', () => {
+      editingKey = true;
+      refreshUI();
+    });
+
+    function refreshUI() {
+      pagesEl.innerHTML = pageFiles.map((f, i) => `
+        <div class="page-thumb">
+          <span class="num">${i + 1}</span>
+          <button class="del" data-i="${i}" type="button">✕</button>
+          <img src="${URL.createObjectURL(f)}" alt="">
+        </div>
+      `).join('');
+      captureLabel.textContent = `影第 ${pageFiles.length + 1} 頁`;
+      countLabel.textContent = pageFiles.length ? `已影 ${pageFiles.length} 頁` : '';
+      const hasPages = pageFiles.length > 0;
+      const showEditableBox = hasPages && (!hasAutoKey || editingKey);
+      answerkeyAuto.style.display = (hasPages && hasAutoKey && !editingKey) ? 'flex' : 'none';
+      answerkeyBox.style.display = showEditableBox ? 'block' : 'none';
+      submitBtn.style.display = hasPages ? 'block' : 'none';
       notice.style.display = 'none';
       resultCard.style.display = 'none';
+    }
+
+    pagesEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.del');
+      if (!btn) return;
+      pageFiles.splice(Number(btn.dataset.i), 1);
+      refreshUI();
+    });
+
+    captureBtn.addEventListener('click', () => cameraInput.click());
+    galleryLink.addEventListener('click', () => galleryInput.click());
+
+    cameraInput.addEventListener('change', () => {
+      if (cameraInput.files[0]) pageFiles.push(cameraInput.files[0]);
+      cameraInput.value = '';
+      refreshUI();
+    });
+    galleryInput.addEventListener('change', () => {
+      pageFiles.push(...Array.from(galleryInput.files));
+      galleryInput.value = '';
+      refreshUI();
     });
 
     function fileToBase64(file) {
@@ -154,7 +223,7 @@
     }
 
     submitBtn.addEventListener('click', async () => {
-      if (!selectedFile) return;
+      if (!pageFiles.length) return;
       const answerKey = answerkeyInput.value.trim();
       if (!answerKey) {
         notice.textContent = '請先貼上答案key，先可以準確批改。';
@@ -162,20 +231,19 @@
         return;
       }
       submitBtn.disabled = true;
-      submitBtn.textContent = '批改緊，請稍等…';
+      submitBtn.textContent = `批改緊 ${pageFiles.length} 頁，請稍等…`;
       notice.style.display = 'none';
       resultCard.style.display = 'none';
 
       try {
-        const base64 = await fileToBase64(selectedFile);
+        const images = await Promise.all(pageFiles.map(async f => ({
+          data: await fileToBase64(f),
+          mediaType: f.type || 'image/jpeg',
+        })));
         const res = await fetch('/api/grade', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            image: base64,
-            mediaType: selectedFile.type || 'image/jpeg',
-            answerKey,
-          }),
+          body: JSON.stringify({ images, answerKey }),
         });
         const data = await res.json();
         if (!res.ok) {
@@ -192,6 +260,8 @@
         submitBtn.textContent = '提交批改';
       }
     });
+
+    refreshUI();
   </script>
 </body>
 </html>
