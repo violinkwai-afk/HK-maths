@@ -202,12 +202,26 @@
       refreshUI();
     });
 
+    // Re-encoding through a canvas (instead of sending the camera's raw file
+    // bytes) strips whatever odd metadata/encoding some phone photos carry --
+    // one such photo was silently rejected by the grading API with a
+    // "forbidden" error until re-saved as a plain JPEG. This also caps
+    // resolution, which keeps image-token cost down on large phone photos.
     function fileToBase64(file) {
       return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result.split(',')[1]);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
+        const img = new Image();
+        img.onload = () => {
+          const maxDim = 1600;
+          const scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.round(img.width * scale);
+          canvas.height = Math.round(img.height * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          URL.revokeObjectURL(img.src);
+          resolve(canvas.toDataURL('image/jpeg', 0.9).split(',')[1]);
+        };
+        img.onerror = reject;
+        img.src = URL.createObjectURL(file);
       });
     }
 
@@ -268,7 +282,7 @@
       try {
         const images = await Promise.all(pageFiles.map(async f => ({
           data: await fileToBase64(f),
-          mediaType: f.type || 'image/jpeg',
+          mediaType: 'image/jpeg',
         })));
         const res = await fetch('/api/grade', {
           method: 'POST',
