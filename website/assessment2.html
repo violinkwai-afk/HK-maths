@@ -367,7 +367,7 @@ function buildPlan(answers){
   const q19 = `<div class="q">19. 如果昨天是星期${WD[wd19]}，明天是星期<span class="fillline">${WD[(wd19+2)%7]}</span>。</div>`;
   push(`星期${WD[(wd19+2)%7]}`);
 
-  const q20 = `<div class="q">20. 右圖是一個立體圖形。
+  const q20 = `<div class="q">20. 下圖是一個立體圖形。
     <div class="shapes-row">${ICON['圓錐']}</div>
     <div class="q-sub">這個尖頂、底面是圓形的立體，是（<span class="choice"><span>角柱</span> / <span>角錐</span> / <span>圓柱</span> / <span class="correct">圓錐</span></span>）。（圈出答案）</div></div>`;
   push('圓錐');
@@ -412,7 +412,7 @@ function buildPlan(answers){
     <div class="q-sub">(c) 由直線和曲線組成的圖案：<span class="fillline">D</span></div></div>`;
   push('(a)A (b)A,B (c)D');
 
-  const q25 = `<div class="q">25. 右圖是由（<span class="choice"><span class="correct">三角形</span> / <span>圓形</span> / <span>五邊形</span> / <span>六邊形</span></span>）所組成。（圈出所有答案）
+  const q25 = `<div class="q">25. 下圖是由（<span class="choice"><span class="correct">三角形</span> / <span>圓形</span> / <span>五邊形</span> / <span>六邊形</span></span>）所組成。（圈出所有答案）
     <div class="shapes-row">${TRIANGLE_FIGURE}</div></div>`;
   push('三角形');
 
@@ -471,7 +471,7 @@ function buildPlan(answers){
     houses += `<rect x="${x}" y="50" width="35" height="35" fill="none" stroke="#333" stroke-width="1.5"/>
       <polygon points="${x-2.5},50 ${x+37.5},50 ${x+17.5},25" fill="none" stroke="#333" stroke-width="1.5"/>`;
   }
-  const p5q2 = `<div class="q">2. 右圖是小光設計的平面圖形。 <span style="font-size:12px;color:#666;">2%</span>
+  const p5q2 = `<div class="q">2. 下圖是小光設計的平面圖形。 <span style="font-size:12px;color:#666;">2%</span>
     <div class="shapes-row"><svg width="${20+houseCount*45}" height="90" viewBox="0 0 ${20+houseCount*45} 90">${houses}</svg></div>
     <div class="q-sub">小光的設計圖用了<span class="fillline">${houseCount}</span>個四邊形和<span class="fillline">${houseCount}</span>個三角形。</div></div>`;
   push(`四邊形${houseCount}, 三角形${houseCount}`);
