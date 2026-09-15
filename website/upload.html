@@ -48,6 +48,8 @@
     display:flex; align-items:center; justify-content:center; cursor:pointer;}
 
   .count-label{font-size:.78rem; color:var(--muted); margin-top:10px; text-align:center;}
+  .limit-banner{background:var(--yellow-soft); color:var(--ink); border-radius:16px; padding:14px 16px;
+    font-size:.85rem; line-height:1.6; margin-bottom:16px;}
 
   .notice{
     margin-top:20px; background:var(--yellow-soft); color:var(--ink); border-radius:16px;
@@ -94,6 +96,8 @@
     <h1>上載試卷</h1>
     <p class="sub">按一下拍攝一頁；試卷有多少頁，就按多少下，拍攝完畢後一併提交。</p>
 
+    <div class="limit-banner" id="limitBanner" hidden>本月批改次數已達上限，下月將自動重置。</div>
+
     <button class="capture-btn" id="captureBtn" type="button">
       <div class="capture-icon">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" stroke-width="2.4" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.2" stroke-width="2.4"/></svg>
@@ -124,6 +128,7 @@
   </div>
 
   <script>
+    const limitBanner = document.getElementById('limitBanner');
     const captureBtn = document.getElementById('captureBtn');
     const captureLabel = document.getElementById('captureLabel');
     const galleryLink = document.getElementById('galleryLink');
@@ -139,9 +144,27 @@
     const answerkeyInput = document.getElementById('answerkeyInput');
     const resultCard = document.getElementById('resultCard');
     const MAX_PAGES = 5;
+    const MAX_SUBMISSIONS_PER_MONTH = 30;
     let pageFiles = [];
     let hasAutoKey = false;
+
+    // Soft, device-side usage cap -- there's no account system yet, so this
+    // is a UX guardrail against runaway AI cost, not real abuse prevention
+    // (clearing browser data or switching device resets it). A server-side
+    // cap tied to a real account is the real fix, once payment/login exists.
+    function usageKey() {
+      const d = new Date();
+      return `hk_maths_usage_${d.getFullYear()}-${d.getMonth() + 1}`;
+    }
+    function getUsageCount() {
+      try { return Number(localStorage.getItem(usageKey()) || '0'); } catch (e) { return 0; }
+    }
+    function incrementUsageCount() {
+      try { localStorage.setItem(usageKey(), String(getUsageCount() + 1)); } catch (e) {}
+    }
     let editingKey = false;
+    const atMonthlyLimit = getUsageCount() >= MAX_SUBMISSIONS_PER_MONTH;
+    if (atMonthlyLimit) limitBanner.hidden = false;
 
     try {
       const saved = JSON.parse(localStorage.getItem('hk_maths_answer_key') || 'null');
@@ -164,7 +187,7 @@
           <img src="${URL.createObjectURL(f)}" alt="">
         </div>
       `).join('');
-      const atLimit = pageFiles.length >= MAX_PAGES;
+      const atLimit = atMonthlyLimit || pageFiles.length >= MAX_PAGES;
       captureBtn.style.display = atLimit ? 'none' : 'flex';
       galleryLink.style.display = atLimit ? 'none' : 'block';
       countLabel.textContent = pageFiles.length
@@ -296,6 +319,7 @@
         } else {
           renderResult(data, pageFiles);
           saveToHistory(data);
+          incrementUsageCount();
         }
       } catch (e) {
         notice.textContent = '網絡錯誤，請檢查連線後再試一次。';
