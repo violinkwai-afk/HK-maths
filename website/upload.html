@@ -71,6 +71,9 @@
     padding:10px 12px; font-family:inherit; font-size:.8rem; color:var(--ink); resize:vertical;}
   .answerkey-label{font-size:.75rem; color:var(--muted); margin:0 0 6px;}
   .result-card{margin-top:20px; background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:16px; display:none;}
+  .result-photos{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px;}
+  .result-photos a{display:block; border-radius:10px; overflow:hidden; aspect-ratio:3/4;}
+  .result-photos img{width:100%; height:100%; object-fit:cover; display:block;}
   .result-score{font-size:1.2rem; font-weight:800; margin-bottom:10px;}
   .result-item{display:flex; gap:8px; padding:8px 0; border-top:1px solid rgba(58,43,46,0.06); font-size:.82rem;}
   .result-item:first-of-type{border-top:none;}
@@ -222,9 +225,15 @@
       } catch (e) {}
     }
 
-    function renderResult(data) {
+    function renderResult(data, submittedFiles) {
       const marks = { true: ['✓','ok'], false: ['✗','no'], null: ['?','unsure'] };
-      let html = `<div class="result-score">${escapeHtml(data.score || '')}</div>`;
+      let html = '';
+      if (submittedFiles && submittedFiles.length) {
+        html += `<div class="result-photos">${submittedFiles.map((f, i) =>
+          `<a href="${URL.createObjectURL(f)}" target="_blank"><img src="${URL.createObjectURL(f)}" alt="第 ${i + 1} 頁"></a>`
+        ).join('')}</div>`;
+      }
+      html += `<div class="result-score">${escapeHtml(data.score || '')}</div>`;
       (data.results || []).forEach(r => {
         const key = r.correct === true ? 'true' : r.correct === false ? 'false' : 'null';
         const [sym, cls] = marks[key];
@@ -271,7 +280,7 @@
           notice.textContent = data.message || '批改失敗，請稍後再試。';
           notice.style.display = 'block';
         } else {
-          renderResult(data);
+          renderResult(data, pageFiles);
           saveToHistory(data);
         }
       } catch (e) {
