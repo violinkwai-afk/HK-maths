@@ -59,13 +59,17 @@
   .q{margin-bottom:24px;}
   .q-text{font-size:1.25rem; margin-bottom:10px; line-height:1.4; font-variant-numeric:tabular-nums;}
   .q-num{font-weight:700; margin-right:4px; color:var(--accent-ink);}
-  .ans-line{border-bottom:1.5px solid var(--line); width:100%; max-width:170px; height:38px; display:block;}
-  .ans-line.wide{width:100%; max-width:420px; height:38px; display:block;}
+  .ans-line{border-bottom:1.5px solid var(--line); width:100%; max-width:170px; height:38px; display:block; position:relative;}
+  .ans-line.wide{width:100%; max-width:420px; height:38px; display:block; position:relative;}
+  .ans-line .ans-value{display:none; position:absolute; left:6px; bottom:4px; font-weight:700; color:var(--accent-ink);}
+  .sheet.show-answers .ans-line .ans-value{display:inline-block;}
   .section2-grid{display:flex; flex-wrap:wrap; gap:24px 32px;}
   .section2-grid .q{display:flex; align-items:center; gap:10px;}
   .vertical-sum{font-size:1.25rem; font-family:"Courier New",monospace; width:160px; font-variant-numeric:tabular-nums;}
   .vertical-sum .row{display:flex; justify-content:flex-end; gap:6px;}
-  .vertical-sum .box{display:inline-block; width:34px; height:34px; border:1.5px solid var(--line); border-radius:3px;}
+  .vertical-sum .box{display:inline-block; width:34px; height:34px; border:1.5px solid var(--line); border-radius:3px; position:relative;}
+  .vertical-sum .box .ans-value{display:none; position:absolute; inset:0; text-align:center; line-height:31px; font-weight:700; color:var(--accent-ink);}
+  .sheet.show-answers .vertical-sum .box .ans-value{display:block;}
   .vertical-sum .digit{display:inline-block; width:34px; text-align:center;}
   .vertical-sum .op{width:34px; text-align:center;}
   .vertical-sum .line{border-top:1.5px solid var(--line); margin:4px 0;}
@@ -79,17 +83,12 @@
     padding:10px 14px; font-size:.8rem; line-height:1.5; margin-bottom:18px; text-align:center;
   }
 
-  #answerBox{
-    display:none; margin-top:18px; padding:16px 18px; background:var(--accent-soft);
-    border:1px solid var(--accent); border-radius:12px; font-size:.9rem; color:var(--ink);
-  }
-  #answerBox b{color:var(--accent-ink);}
-  #answerBox ol{margin:10px 0 0; padding-left:20px; line-height:1.7;}
 
   @media print {
     body{background:#fff; padding:0;}
     .no-print{display:none;}
     .sheet{border:none; box-shadow:none; padding:0;}
+    .ans-value{display:none !important;}
   }
 </style>
 </head>
@@ -114,7 +113,6 @@
   </div>
 
   <div class="sheet" id="sheet"></div>
-  <div id="answerBox"></div>
 </div>
 
 <script>
@@ -209,7 +207,7 @@ function renderSheet(worksheetId, questions, isReview){
   const s1 = [], s2 = [], s3 = [], answers = [];
   questions.forEach(q=>{
     if(q.type==="equation"){
-      s1.push(`<div class="q"><div class="q-text"><span class="q-num">${n}.</span> ${q.text}</div><div class="ans-line"></div></div>`);
+      s1.push(`<div class="q"><div class="q-text"><span class="q-num">${n}.</span> ${q.text}</div><div class="ans-line"><span class="ans-value">${q.answer}</span></div></div>`);
       answers.push(`${q.text} <b>${q.answer}</b>`);
       n++;
     }
@@ -218,8 +216,8 @@ function renderSheet(worksheetId, questions, isReview){
     if(q.type==="missing_digit_sub"){
       s2.push(`<div class="q"><div class="q-label"><span class="q-num">${n}.</span></div>
         <div class="vertical-sum">
-          <div class="row"><span class="box"></span><span class="digit">${q.topOnes}</span></div>
-          <div class="row"><span class="op">-</span><span class="digit">${q.subTens}</span><span class="box"></span></div>
+          <div class="row"><span class="box"><span class="ans-value">${q.topTens}</span></span><span class="digit">${q.topOnes}</span></div>
+          <div class="row"><span class="op">-</span><span class="digit">${q.subTens}</span><span class="box"><span class="ans-value">${q.subOnes}</span></span></div>
           <div class="line"></div>
           <div class="row result">${String(q.result).padStart(2,'0')}</div>
         </div></div>`);
@@ -229,7 +227,7 @@ function renderSheet(worksheetId, questions, isReview){
   });
   questions.forEach(q=>{
     if(q.type==="word_problem"){
-      s3.push(`<div class="q wide"><div class="q-text"><span class="q-num">${n}.</span> ${q.text}</div><div class="ans-line wide"></div></div>`);
+      s3.push(`<div class="q wide"><div class="q-text"><span class="q-num">${n}.</span> ${q.text}</div><div class="ans-line wide"><span class="ans-value">${q.answer}</span></div></div>`);
       answers.push(`<b>${q.answer}</b>`);
       n++;
     }
@@ -244,11 +242,10 @@ function renderSheet(worksheetId, questions, isReview){
     ${s1.length ? `<div class="section-title">(1) Work out the answers.</div><div class="section1">${s1.join('')}</div>` : ''}
     ${s2.length ? `<div class="section-title">(2) Fill in the missing digits.</div><div class="section2-grid">${s2.join('')}</div>` : ''}
     ${s3.length ? `<div class="section-title">(3) Word problem.</div><div class="section3">${s3.join('')}</div>` : ''}
-    <div class="footnote">Print this page, have your child complete it on paper, then use the answer key above to check their work.
+    <div class="footnote">Print this page, have your child complete it on paper, then tap "查看答案" to check their work.
       <div class="paper-credit">Little Steps · hk-maths.violin-kwai.workers.dev · WORKSHEET ${worksheetId}</div>
     </div>
   `;
-  document.getElementById('answerBox').innerHTML = `<b>Answer key — Worksheet ${worksheetId}</b><ol>${answers.map(a=>`<li>${a}</li>`).join('')}</ol>`;
 
   // Save so upload.html (a separate page) can send it to the grading
   // endpoint -- worksheets are randomized client-side with no server-side
@@ -278,13 +275,16 @@ const reviewTopics = matchWeakTopics(new URLSearchParams(location.search).get('r
 
 function newWorksheet(){
   renderSheet(randId(6), generateWorksheet(reviewTopics), reviewTopics.length > 0);
+  document.getElementById('answerBtn').textContent = '查看答案';
 }
 
 document.getElementById('genBtn').onclick = newWorksheet;
 document.getElementById('printBtn').onclick = () => window.print();
 document.getElementById('answerBtn').onclick = () => {
-  const box = document.getElementById('answerBox');
-  box.style.display = box.style.display === 'block' ? 'none' : 'block';
+  const sheet = document.getElementById('sheet');
+  const btn = document.getElementById('answerBtn');
+  const showing = sheet.classList.toggle('show-answers');
+  btn.textContent = showing ? '隱藏答案' : '查看答案';
 };
 
 newWorksheet();
