@@ -106,6 +106,93 @@ const WD = ['日','一','二','三','四','五','六'];
 function daysInMonth(y,m){ return new Date(y,m,0).getDate(); }
 function dayOfWeek(y,m,d){ return new Date(y,m-1,d).getDay(); }
 
+function clockSVG(hour, minute){
+  const cx=50, cy=50, r=44;
+  const hourAngle = ((hour%12) + minute/60) * 30 - 90;
+  const minAngle = minute*6 - 90;
+  const hx = cx + 24*Math.cos(hourAngle*Math.PI/180);
+  const hy = cy + 24*Math.sin(hourAngle*Math.PI/180);
+  const mx = cx + 36*Math.cos(minAngle*Math.PI/180);
+  const my = cy + 36*Math.sin(minAngle*Math.PI/180);
+  let ticks='';
+  for(let n=1;n<=12;n++){
+    const a=(n*30-90)*Math.PI/180;
+    const tx=cx+36*Math.cos(a), ty=cy+36*Math.sin(a);
+    ticks += `<text x="${tx.toFixed(1)}" y="${(ty+3.5).toFixed(1)}" font-size="9" text-anchor="middle" font-family="sans-serif" fill="#333">${n}</text>`;
+  }
+  return `<svg width="92" height="92" viewBox="0 0 100 100">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#333" stroke-width="2.2"/>
+    ${ticks}
+    <line x1="${cx}" y1="${cy}" x2="${hx.toFixed(1)}" y2="${hy.toFixed(1)}" stroke="#333" stroke-width="3" stroke-linecap="round"/>
+    <line x1="${cx}" y1="${cy}" x2="${mx.toFixed(1)}" y2="${my.toFixed(1)}" stroke="#333" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="2.5" fill="#333"/>
+  </svg>`;
+}
+
+function shapeOutline(straightN, curveN){
+  const total = straightN + curveN;
+  const cx=50, cy=52, r=32;
+  const pts = [];
+  for(let i=0;i<total;i++){
+    const ang = -Math.PI/2 + i*(2*Math.PI/total);
+    pts.push([cx+r*Math.cos(ang), cy+r*Math.sin(ang)]);
+  }
+  const edgeIdx = shuffle([...Array(total).keys()]);
+  const curveEdges = new Set(edgeIdx.slice(0, curveN));
+  let d = `M ${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)} `;
+  for(let i=0;i<total;i++){
+    const [x1,y1] = pts[i];
+    const [x2,y2] = pts[(i+1)%total];
+    if(curveEdges.has(i)){
+      const mx=(x1+x2)/2, my=(y1+y2)/2;
+      const dx=mx-cx, dy=my-cy;
+      const len=Math.hypot(dx,dy)||1;
+      const bulge = 15;
+      const cxp = mx+dx/len*bulge, cyp = my+dy/len*bulge;
+      d += `Q ${cxp.toFixed(1)},${cyp.toFixed(1)} ${x2.toFixed(1)},${y2.toFixed(1)} `;
+    } else {
+      d += `L ${x2.toFixed(1)},${y2.toFixed(1)} `;
+    }
+  }
+  d += 'Z';
+  return `<svg width="100" height="104" viewBox="0 0 100 104"><path d="${d}" fill="none" stroke="#333" stroke-width="2.2"/></svg>`;
+}
+
+function queueSVG(total, posA, posB){
+  const gap=34, r=13, cy=30;
+  const w = 20 + (total-1)*gap + 20;
+  let dots='';
+  for(let i=1;i<=total;i++){
+    const cx = 20 + (i-1)*gap;
+    dots += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#333" stroke-width="2"/>`;
+    dots += `<text x="${cx}" y="${cy+4}" font-size="11" text-anchor="middle" font-family="sans-serif" fill="#333">${i}</text>`;
+    if(i===posA) dots += `<text x="${cx}" y="${cy+28}" font-size="11" text-anchor="middle" font-family="sans-serif" fill="#c23f5b" font-weight="700">小光</text>`;
+    if(i===posB) dots += `<text x="${cx}" y="${cy+28}" font-size="11" text-anchor="middle" font-family="sans-serif" fill="#c23f5b" font-weight="700">小誠</text>`;
+  }
+  dots += `<text x="4" y="10" font-size="10" fill="#666">前</text><text x="${w-14}" y="10" font-size="10" fill="#666">後</text>`;
+  return `<svg width="${w}" height="58" viewBox="0 0 ${w} 58">${dots}</svg>`;
+}
+
+const ICON = {
+  球體: `<svg width="46" height="46" viewBox="0 0 54 54"><circle cx="27" cy="27" r="19" fill="none" stroke="#333" stroke-width="2"/><ellipse cx="27" cy="27" rx="19" ry="6" fill="none" stroke="#333" stroke-width="1.2" opacity=".6"/></svg>`,
+  正方體: `<svg width="46" height="46" viewBox="0 0 54 54"><polygon points="10,20 27,30 27,48 10,38" fill="none" stroke="#333" stroke-width="2"/><polygon points="44,20 27,30 27,48 44,38" fill="none" stroke="#333" stroke-width="2"/><polygon points="10,20 27,10 44,20 27,30" fill="none" stroke="#333" stroke-width="2"/></svg>`,
+  三棱柱: `<svg width="46" height="46" viewBox="0 0 54 54"><polygon points="14,40 27,16 40,40" fill="none" stroke="#333" stroke-width="2"/><polygon points="14,40 22,46 48,46 40,40" fill="none" stroke="#333" stroke-width="2"/><line x1="27" y1="16" x2="35" y2="22" stroke="#333" stroke-width="2"/><line x1="48" y1="46" x2="35" y2="22" stroke="#333" stroke-width="2"/></svg>`,
+  圓柱體: `<svg width="46" height="46" viewBox="0 0 54 54"><ellipse cx="27" cy="14" rx="16" ry="6" fill="none" stroke="#333" stroke-width="2"/><line x1="11" y1="14" x2="11" y2="40" stroke="#333" stroke-width="2"/><line x1="43" y1="14" x2="43" y2="40" stroke="#333" stroke-width="2"/><path d="M11,40 A16,6 0 0 0 43,40" fill="none" stroke="#333" stroke-width="2"/></svg>`,
+  圓錐: `<svg width="54" height="54" viewBox="0 0 54 54"><ellipse cx="27" cy="40" rx="16" ry="6" fill="none" stroke="#333" stroke-width="2"/><line x1="27" y1="8" x2="11" y2="40" stroke="#333" stroke-width="2"/><line x1="27" y1="8" x2="43" y2="40" stroke="#333" stroke-width="2"/></svg>`,
+  角錐: `<svg width="46" height="46" viewBox="0 0 54 54"><polygon points="12,38 27,44 42,38 27,32" fill="none" stroke="#333" stroke-width="2"/><line x1="27" y1="8" x2="12" y2="38" stroke="#333" stroke-width="2"/><line x1="27" y1="8" x2="42" y2="38" stroke="#333" stroke-width="2"/><line x1="27" y1="8" x2="27" y2="32" stroke="#333" stroke-width="1.6" stroke-dasharray="2,2"/></svg>`,
+  角柱: `<svg width="46" height="46" viewBox="0 0 54 54"><polygon points="8,24 20,16 46,16 34,24" fill="none" stroke="#333" stroke-width="2"/><polygon points="8,24 8,42 20,50 20,32" fill="none" stroke="#333" stroke-width="2"/><polygon points="20,32 20,50 46,50 46,32" fill="none" stroke="#333" stroke-width="2"/></svg>`,
+  皮球: `<svg width="42" height="42" viewBox="0 0 46 46"><circle cx="23" cy="23" r="18" fill="none" stroke="#333" stroke-width="2"/><path d="M5,23 Q23,10 41,23" fill="none" stroke="#333" stroke-width="1.3"/><path d="M5,23 Q23,36 41,23" fill="none" stroke="#333" stroke-width="1.3"/><line x1="23" y1="5" x2="23" y2="41" stroke="#333" stroke-width="1.3"/></svg>`,
+  水杯: `<svg width="42" height="42" viewBox="0 0 46 46"><path d="M12,9 L14,34 Q23,40 32,34 L34,9 Z" fill="none" stroke="#333" stroke-width="2"/><path d="M34,14 Q43,14 41,22 Q39,29 33,27" fill="none" stroke="#333" stroke-width="2"/></svg>`,
+  直尺: `<svg width="56" height="30" viewBox="0 0 56 30"><rect x="4" y="8" width="48" height="14" fill="none" stroke="#333" stroke-width="2"/>${[10,16,22,28,34,40,46].map(x=>`<line x1="${x}" y1="8" x2="${x}" y2="${(x-10)%12===0?15:12}" stroke="#333" stroke-width="1"/>`).join('')}</svg>`,
+  牙刷: `<svg width="56" height="24" viewBox="0 0 56 24"><line x1="4" y1="16" x2="34" y2="16" stroke="#333" stroke-width="3" stroke-linecap="round"/>${[36,40,44,48].map(x=>`<line x1="${x}" y1="6" x2="${x}" y2="20" stroke="#333" stroke-width="2" stroke-linecap="round"/>`).join('')}</svg>`,
+  梯形: `<svg width="50" height="42" viewBox="0 0 60 50"><polygon points="10,40 50,40 40,10 20,10" fill="none" stroke="#333" stroke-width="2"/></svg>`,
+  五邊形: `<svg width="50" height="50" viewBox="0 0 60 60"><polygon points="30,5 55,25 45,55 15,55 5,25" fill="none" stroke="#333" stroke-width="2"/></svg>`,
+  波浪形: `<svg width="60" height="34" viewBox="0 0 70 40"><path d="M5,25 Q15,10 25,25 T45,25 T65,25" fill="none" stroke="#333" stroke-width="2.4" stroke-linecap="round"/></svg>`,
+  圓形缺角: `<svg width="50" height="50" viewBox="0 0 60 60"><path d="M15,20 A25,25 0 1 0 45,20 L15,20 Z" fill="none" stroke="#333" stroke-width="2"/></svg>`,
+  月牙形: `<svg width="50" height="50" viewBox="0 0 60 60"><path d="M35,8 A25,25 0 1 0 35,52 A18,18 0 1 1 35,8 Z" fill="none" stroke="#333" stroke-width="2"/></svg>`,
+};
+const TRIANGLE_FIGURE = `<svg width="130" height="55" viewBox="0 0 130 55"><polygon points="8,48 30,10 52,48" fill="none" stroke="#333" stroke-width="2"/><polygon points="48,48 70,10 92,48" fill="none" stroke="#333" stroke-width="2"/><polygon points="88,48 110,10 122,48" fill="none" stroke="#333" stroke-width="2"/></svg>`;
+
 function buildPlan(answers){
   let n = 1;
   const push = (ans) => { answers.push(`${n}) ${ans}`); n++; };
@@ -236,6 +323,7 @@ function buildPlan(answers){
   const queueTotal14 = randInt(6,10), pos14 = randInt(2,queueTotal14-1);
   const leaveFront = randInt(1,pos14-1);
   const q14 = `<div class="q">14. 小朋友們正在排隊玩遊戲，共 ${queueTotal14} 人排隊。
+    <div class="shapes-row">${queueSVG(queueTotal14, pos14, pos14+1)}</div>
     <div class="q-sub">(a) 小光排第 ${pos14} 位，小誠排第<span class="fillline">${pos14+1}</span>位。</div>
     <div class="q-sub">(b) 過了一會，前面走了 ${leaveFront} 人，小誠現在排第<span class="fillline">${pos14+1-leaveFront}</span>位。</div></div>`;
   push(`(a)${pos14+1} (b)${pos14+1-leaveFront}`);
@@ -243,6 +331,7 @@ function buildPlan(answers){
   // 15 clock MCQ
   const hour15 = randInt(1,11);
   const q15 = `<div class="q">15. 現在的時間是 ${hour15} 時半，時針應指在哪兩個數字之間？
+    <div class="shapes-row">${clockSVG(hour15,30)}</div>
     <div class="mcq-opts">
       <div class="opt"><span class="radio"></span>A. ${hour15-1||12} 和 ${hour15}</div>
       <div class="opt correct"><span class="radio"></span>B. ${hour15} 和 ${hour15+1>12?1:hour15+1}</div>
@@ -262,6 +351,7 @@ function buildPlan(answers){
   const start17 = randInt(4,8), dur17 = randInt(1,3);
   const end17 = start17+dur17>12?start17+dur17-12:start17+dur17;
   const q17 = `<div class="q">17. 姐姐開始溫習的時間是 ${start17} 時正，她溫習了 ${dur17} 小時，她在甚麼時間完成溫習？
+    <div class="shapes-row">${clockSVG(start17,0)}</div>
     <div class="mcq-opts">
       <div class="opt correct"><span class="radio"></span>A. ${end17} 時正</div>
       <div class="opt"><span class="radio"></span>B. ${end17+1>12?end17+1-12:end17+1} 時正</div>
@@ -277,7 +367,9 @@ function buildPlan(answers){
   const q19 = `<div class="q">19. 如果昨天是星期${WD[wd19]}，明天是星期<span class="fillline">${WD[(wd19+2)%7]}</span>。</div>`;
   push(`星期${WD[(wd19+2)%7]}`);
 
-  const q20 = `<div class="q">20. 一個尖頂、底面是圓形的立體，是（<span class="choice"><span>角柱</span> / <span>角錐</span> / <span>圓柱</span> / <span class="correct">圓錐</span></span>）。（圈出答案）</div>`;
+  const q20 = `<div class="q">20. 右圖是一個立體圖形。
+    <div class="shapes-row">${ICON['圓錐']}</div>
+    <div class="q-sub">這個尖頂、底面是圓形的立體，是（<span class="choice"><span>角柱</span> / <span>角錐</span> / <span>圓柱</span> / <span class="correct">圓錐</span></span>）。（圈出答案）</div></div>`;
   push('圓錐');
 
   const page3 = q14+q15+q16+q17+q18+q19+q20;
@@ -285,34 +377,43 @@ function buildPlan(answers){
   // 21-25 shapes
   const q21 = `<div class="q">21. 以下哪一件物件最適合用來繪畫直線？
     <div class="mcq-opts">
-      <div class="opt"><span class="radio"></span>A. 皮球</div>
-      <div class="opt"><span class="radio"></span>B. 水杯</div>
-      <div class="opt correct"><span class="radio"></span>C. 直尺</div>
-      <div class="opt"><span class="radio"></span>D. 牙刷</div>
+      <div class="opt">${ICON['皮球']}<span class="radio"></span>A. 皮球</div>
+      <div class="opt">${ICON['水杯']}<span class="radio"></span>B. 水杯</div>
+      <div class="opt correct">${ICON['直尺']}<span class="radio"></span>C. 直尺</div>
+      <div class="opt">${ICON['牙刷']}<span class="radio"></span>D. 牙刷</div>
     </div></div>`;
   push('C. 直尺');
 
   const q22 = `<div class="q">22. 以下哪一組立體圖形不能疊穩？
     <div class="mcq-opts">
-      <div class="opt correct"><span class="radio"></span>A. 球體</div>
-      <div class="opt"><span class="radio"></span>B. 正方體</div>
-      <div class="opt"><span class="radio"></span>C. 三棱柱</div>
-      <div class="opt"><span class="radio"></span>D. 圓柱體</div>
+      <div class="opt correct">${ICON['球體']}<span class="radio"></span>A. 球體</div>
+      <div class="opt">${ICON['正方體']}<span class="radio"></span>B. 正方體</div>
+      <div class="opt">${ICON['三棱柱']}<span class="radio"></span>C. 三棱柱</div>
+      <div class="opt">${ICON['圓柱體']}<span class="radio"></span>D. 圓柱體</div>
     </div></div>`;
   push('A. 球體');
 
   const straight23 = randInt(3,6), curve23 = randInt(1,3);
-  const q23 = `<div class="q">23. 一個由 ${straight23} 條直線和 ${curve23} 條曲線組成的圖形，共有<span class="fillline">${straight23+curve23}</span>條線。
-    <div class="q-sub">上圖是由<span class="fillline">${straight23}</span>條直線和<span class="fillline">${curve23}</span>條曲線所組成。</div></div>`;
+  const q23 = `<div class="q">23. 下圖是由幾條直線和幾條曲線組成的圖形？
+    <div class="shapes-row">${shapeOutline(straight23, curve23)}</div>
+    <div class="q-sub">上圖是由<span class="fillline">${straight23}</span>條直線和<span class="fillline">${curve23}</span>條曲線所組成，共有<span class="fillline">${straight23+curve23}</span>條線。</div></div>`;
   push(`直線${straight23}, 曲線${curve23}`);
 
-  const q24 = `<div class="q">24. 把圖案分類：A.梯形 B.五邊形 C.波浪形 D.圓形缺角 E.月牙形
+  const q24 = `<div class="q">24. 把圖案分類：
+    <div class="shapes-row">
+      <div class="shape-lbl">${ICON['梯形']}A. 梯形</div>
+      <div class="shape-lbl">${ICON['五邊形']}B. 五邊形</div>
+      <div class="shape-lbl">${ICON['波浪形']}C. 波浪形</div>
+      <div class="shape-lbl">${ICON['圓形缺角']}D. 圓形缺角</div>
+      <div class="shape-lbl">${ICON['月牙形']}E. 月牙形</div>
+    </div>
     <div class="q-sub">(a) 四邊形：<span class="fillline">A</span></div>
     <div class="q-sub">(b) 只由直線組成的圖案：<span class="fillline">A, B</span></div>
-    <div class="q-sub">(c) 由直線和曲線組成的圖案：<span class="fillline">（視乎圖案）</span></div></div>`;
-  push('(a)A (b)A,B (c)視乎圖案');
+    <div class="q-sub">(c) 由直線和曲線組成的圖案：<span class="fillline">D</span></div></div>`;
+  push('(a)A (b)A,B (c)D');
 
-  const q25 = `<div class="q">25. 右圖是由（<span class="choice"><span class="correct">三角形</span> / <span>圓形</span> / <span>五邊形</span> / <span>六邊形</span></span>）所組成。（圈出所有答案）</div>`;
+  const q25 = `<div class="q">25. 右圖是由（<span class="choice"><span class="correct">三角形</span> / <span>圓形</span> / <span>五邊形</span> / <span>六邊形</span></span>）所組成。（圈出所有答案）
+    <div class="shapes-row">${TRIANGLE_FIGURE}</div></div>`;
   push('三角形');
 
   const page4 = q21+q22+q23+q24+q25;
