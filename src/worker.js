@@ -80,7 +80,7 @@ ${answerKey}
   let parsed;
   const usage = { sonnet: null, opus: null };
   try {
-    const r = await callClaude("claude-sonnet-5", 2048, images, prompt, apiKey);
+    const r = await callClaude("claude-sonnet-5", 4096, images, prompt, apiKey);
     parsed = r.parsed;
     usage.sonnet = r.usage;
   } catch (e) {
@@ -107,7 +107,7 @@ ${answerKey}
 {"results":[{"question":"題號","studentAnswer":"學生答案","correct":true/false/null,"note":""}]}`;
 
     try {
-      const rc = await callClaude("claude-opus-5", 1024, images, recheckPrompt, apiKey);
+      const rc = await callClaude("claude-opus-5", 2048, images, recheckPrompt, apiKey);
       const recheck = rc.parsed;
       usage.opus = rc.usage;
       const byQuestion = new Map((recheck.results || []).map((r) => [String(r.question), r]));
