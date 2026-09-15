@@ -38,7 +38,7 @@
       }));
       const key = 'hk_maths_grading_history';
       const history = JSON.parse(localStorage.getItem(key) || '[]');
-      history.unshift({ date: Date.now(), score, weakAreas, results });
+      history.unshift({ date: Date.now(), score, weakAreas, results, answerKeyLines: answers });
       localStorage.setItem(key, JSON.stringify(history.slice(0, 30)));
       document.body.innerHTML = '<p>已載入，正在前往主頁…</p>';
     } catch (e) {

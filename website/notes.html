@@ -25,17 +25,10 @@
   .sub{font-size:.85rem; color:var(--muted); margin:0 0 20px; line-height:1.55;}
 
   .note-card{background:var(--card); border-radius:18px; padding:16px; box-shadow:var(--shadow); margin-bottom:14px;}
-  .note-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
-  .note-q{font-weight:800; font-size:.95rem;}
-  .note-date{font-size:.72rem; color:var(--muted); white-space:nowrap;}
-  .note-answer{font-size:.85rem; margin-top:6px; color:var(--ink);}
-  .note-answer b{color:var(--pink-ink);}
-  .note-reason{font-size:.78rem; color:var(--muted); margin-top:4px;}
-  .note-tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
-  .note-tag{background:var(--yellow-soft); color:var(--ink); font-size:.72rem; font-weight:700; padding:5px 10px; border-radius:10px;}
-  .note-badge{flex-shrink:0; font-size:.72rem; font-weight:800; padding:4px 9px; border-radius:10px;}
-  .note-badge.wrong{background:var(--pink-soft); color:var(--pink-ink);}
-  .note-badge.unsure{background:var(--yellow-soft); color:#8a5a12;}
+  .note-label{font-size:.72rem; color:var(--pink-ink); font-weight:800; text-transform:uppercase; letter-spacing:.03em; margin-bottom:4px;}
+  .note-topic{font-weight:800; font-size:1rem; margin-bottom:10px;}
+  .note-example-label{font-size:.72rem; color:var(--muted); font-weight:700; margin-bottom:4px;}
+  .note-example{background:var(--yellow-soft); border-radius:12px; padding:10px 12px; font-size:.88rem; line-height:1.5; font-variant-numeric:tabular-nums;}
 
   .empty{background:var(--card); border-radius:18px; padding:32px 20px; text-align:center; box-shadow:var(--shadow);}
   .empty-icon{width:52px; height:52px; border-radius:16px; background:var(--pink-soft); color:var(--pink-ink);
@@ -54,7 +47,7 @@
       返回首頁
     </a>
     <h1>筆記</h1>
-    <p class="sub">根據批改結果中答錯或不確定的題目，自動整理成重點筆記。</p>
+    <p class="sub">根據批改結果，整理小朋友要繼續學的內容。</p>
 
     <div id="content"></div>
   </div>
@@ -63,57 +56,48 @@
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     }
-    function formatDate(ts) {
-      const d = new Date(ts);
-      return `${d.getMonth() + 1}月${d.getDate()}日`;
-    }
 
     let history = [];
     try {
       history = JSON.parse(localStorage.getItem('hk_maths_grading_history') || '[]');
     } catch (e) {}
 
-    const notes = [];
+    // One card per weak-area topic (not per wrong answer): the topic itself
+    // is "what to keep learning", and a concrete example question from
+    // whichever session first surfaced it makes the topic tangible instead
+    // of an abstract label.
+    const topics = new Map();
     history.forEach(h => {
-      (h.results || []).forEach(r => {
-        if (r.correct === false || r.correct === null) {
-          notes.push({
-            date: h.date,
-            weakAreas: h.weakAreas || [],
-            question: r.question,
-            studentAnswer: r.studentAnswer,
-            note: r.note,
-            unsure: r.correct === null,
-          });
-        }
+      (h.weakAreas || []).forEach(topic => {
+        if (topics.has(topic)) return;
+        const wrongItem = (h.results || []).find(r => r.correct !== true);
+        const idx = wrongItem ? Number(wrongItem.question) - 1 : -1;
+        const example = (h.answerKeyLines && idx >= 0) ? h.answerKeyLines[idx] : null;
+        topics.set(topic, example || null);
       });
     });
 
     const content = document.getElementById('content');
 
-    if (!notes.length) {
+    if (!topics.size) {
       content.innerHTML = `
         <div class="empty">
           <div class="empty-icon">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 4h8l4 4v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" stroke-width="2.4" stroke-linejoin="round"/><path d="M9 11h6M9 15h6" stroke-width="2.4" stroke-linecap="round"/></svg>
           </div>
-          <p>暫時未有筆記。<br>批改試卷後，答錯或不確定的題目會自動整理到這裡。</p>
+          <p>暫時未有筆記。<br>批改試卷後，小朋友需要加強的內容會自動整理到這裡。</p>
           <a href="upload.html">前往批改試卷</a>
         </div>
       `;
     } else {
-      content.innerHTML = notes.map(n => `
+      content.innerHTML = Array.from(topics.entries()).map(([topic, example]) => `
         <div class="note-card">
-          <div class="note-top">
-            <div class="note-q">第 ${escapeHtml(String(n.question || ''))} 題</div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <span class="note-badge ${n.unsure ? 'unsure' : 'wrong'}">${n.unsure ? '不確定' : '答錯'}</span>
-              <span class="note-date">${formatDate(n.date)}</span>
-            </div>
-          </div>
-          <div class="note-answer">作答：<b>${escapeHtml(n.studentAnswer || '（未能辨識）')}</b></div>
-          ${n.note ? `<div class="note-reason">${escapeHtml(n.note)}</div>` : ''}
-          ${n.weakAreas.length ? `<div class="note-tags">${n.weakAreas.map(w => `<span class="note-tag">${escapeHtml(w)}</span>`).join('')}</div>` : ''}
+          <div class="note-label">要繼續學</div>
+          <div class="note-topic">${escapeHtml(topic)}</div>
+          ${example ? `
+            <div class="note-example-label">題目例子</div>
+            <div class="note-example">${escapeHtml(example)}</div>
+          ` : ''}
         </div>
       `).join('');
     }

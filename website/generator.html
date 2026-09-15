@@ -53,10 +53,11 @@
     border-bottom:2px solid var(--line); text-wrap:balance;
   }
   .section-title:first-of-type{margin-top:0;}
+  .section1{display:grid; grid-template-columns:1fr 1fr; gap:4px 28px;}
   .q{margin-bottom:24px;}
   .q-text{font-size:1.25rem; margin-bottom:10px; line-height:1.4; font-variant-numeric:tabular-nums;}
   .q-num{font-weight:700; margin-right:4px; color:var(--accent-ink);}
-  .ans-line{border-bottom:1.5px solid var(--line); width:170px; height:26px; display:inline-block;}
+  .ans-line{border-bottom:1.5px solid var(--line); width:100%; max-width:170px; height:26px; display:block;}
   .ans-line.wide{width:100%; max-width:420px; display:block;}
   .section2-grid{display:flex; flex-wrap:wrap; gap:24px 32px;}
   .section2-grid .q{display:flex; align-items:center; gap:10px;}
@@ -70,6 +71,10 @@
   .footnote{
     margin-top:28px; font-size:.8rem; color:var(--muted); text-align:center;
     border-top:1px dashed var(--border); padding-top:14px;
+  }
+  .review-notice{
+    background:var(--accent-soft); color:var(--accent-ink); border-radius:12px;
+    padding:10px 14px; font-size:.8rem; line-height:1.5; margin-bottom:18px; text-align:center;
   }
 
   #answerBox{
@@ -119,11 +124,18 @@ function randId(n){
 }
 function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
 
-function genAddSub(){
-  const op = Math.random()<0.5 ? "+" : "-";
+function genAddSub(easy, forceOp){
+  const op = forceOp || (Math.random()<0.5 ? "+" : "-");
   let a,b,answer,text;
-  if(op==="+"){ a=randInt(10,69); b=randInt(10,99-a); answer=a+b; text=`${a} + ${b} =`; }
-  else { a=randInt(20,99); b=randInt(10,a); answer=a-b; text=`${a} - ${b} =`; }
+  if(op==="+"){
+    if(easy){ a=randInt(1,8); b=randInt(1,9-a); } // single-digit, sum stays under 10
+    else { a=randInt(10,69); b=randInt(10,99-a); }
+    answer=a+b; text=`${a} + ${b} =`;
+  } else {
+    if(easy){ a=randInt(5,9); b=randInt(1,a); } // single-digit, no borrowing
+    else { a=randInt(20,99); b=randInt(10,a); }
+    answer=a-b; text=`${a} - ${b} =`;
+  }
   return {type:"equation", text, answer:String(answer)};
 }
 function genMissingDigitSub(){
@@ -139,24 +151,58 @@ function genMissingDigitSub(){
   return {type:"missing_digit_sub", topTens:x, topOnes:8, subTens:3, subOnes:y, result,
     text:`${x}8 - 3${y} = ${result} (top blank = ${x}, bottom blank = ${y})`};
 }
-function genWordProblem(){
+function genWordProblem(easy){
   const name = ["Tom","Mary","Peter","Ann"][randInt(0,3)];
   const kind = ["add_stickers","add_pencils","sub_sweets"][randInt(0,2)];
   let a,b,text,answer;
+  if(easy){
+    if(kind==="sub_sweets"){ a=randInt(5,9); b=randInt(1,a); text=`${name} has ${a} sweets. ${name} eats ${b} of them. How many sweets are left?`; answer=a-b; }
+    else { a=randInt(2,5); b=randInt(2,9-a); text=`${name} has ${a} stickers. ${name} buys ${b} more stickers. How many stickers does ${name} have now?`; answer=a+b; }
+    return {type:"word_problem", text, answer:String(answer)};
+  }
   if(kind==="add_stickers"){ a=randInt(20,60); b=randInt(10,40); text=`${name} has ${a} stickers. ${name} buys ${b} more stickers. How many stickers does ${name} have now?`; answer=a+b; }
   else if(kind==="add_pencils"){ a=randInt(20,60); b=randInt(10,40); text=`A shop sold ${a} pencils yesterday. It sold ${b} more pencils today. How many pencils were sold in total?`; answer=a+b; }
   else { a=randInt(30,70); b=randInt(10,a-5); text=`${name} has ${a} sweets. ${name} eats ${b} of them. How many sweets are left?`; answer=a-b; }
   return {type:"word_problem", text, answer:String(answer)};
 }
-function generateWorksheet(){
+
+// weakTopics: array of 'add' | 'sub' | 'missing' | 'word' detected from the
+// AI's free-text weak-area labels (see matchWeakTopics below) -- when
+// present, the sheet is a shorter, deliberately easier set weighted toward
+// those topics, meant as a foundation-first review before harder practice.
+function generateWorksheet(weakTopics){
   const qs = [];
+  if(weakTopics && weakTopics.length){
+    const wantsAdd = weakTopics.includes('add'), wantsSub = weakTopics.includes('sub');
+    for(let i=0;i<4;i++){
+      const op = wantsAdd && wantsSub ? undefined : (wantsAdd ? '+' : wantsSub ? '-' : undefined);
+      qs.push(genAddSub(true, op));
+    }
+    if(weakTopics.includes('missing')) for(let i=0;i<2;i++) qs.push(genMissingDigitSub());
+    if(weakTopics.includes('word') || !weakTopics.includes('missing')) qs.push(genWordProblem(true));
+    return qs;
+  }
   for(let i=0;i<5;i++) qs.push(genAddSub());
   for(let i=0;i<2;i++) qs.push(genMissingDigitSub());
   qs.push(genWordProblem());
   return qs;
 }
 
-function renderSheet(worksheetId, questions){
+// Best-effort keyword match from the AI's free-text weak-area labels (e.g.
+// "兩位數減法運算") to the handful of question types this generator actually
+// has. Anything unrecognised (e.g. "長除法", which isn't implemented here)
+// is simply dropped rather than guessed at.
+function matchWeakTopics(weakAreasParam){
+  const text = weakAreasParam || '';
+  const topics = [];
+  if(/加/.test(text)) topics.push('add');
+  if(/減/.test(text)) topics.push('sub');
+  if(/填空|直式|missing/i.test(text)) topics.push('missing');
+  if(/應用題|word/i.test(text)) topics.push('word');
+  return topics;
+}
+
+function renderSheet(worksheetId, questions, isReview){
   let n = 1;
   const s1 = [], s2 = [], s3 = [], answers = [];
   questions.forEach(q=>{
@@ -187,15 +233,14 @@ function renderSheet(worksheetId, questions){
     }
   });
 
+  const reviewNotice = isReview ? `<div class="review-notice">重點溫習部份 — 題目特意調淺，等小朋友先掌握基礎，再逐步加深。</div>` : '';
   document.getElementById('sheet').innerHTML = `
-    <div class="paper-title">Primary 1 Maths Practice</div>
+    <div class="paper-title">${isReview ? '重點溫習卷' : 'Primary 1 Maths Practice'}</div>
     <div class="paper-sub">WORKSHEET ${worksheetId}</div>
-    <div class="section-title">(1) Work out the answers.</div>
-    <div class="section1">${s1.join('')}</div>
-    <div class="section-title">(2) Fill in the missing digits.</div>
-    <div class="section2-grid">${s2.join('')}</div>
-    <div class="section-title">(3) Word problem.</div>
-    <div class="section3">${s3.join('')}</div>
+    ${reviewNotice}
+    ${s1.length ? `<div class="section-title">(1) Work out the answers.</div><div class="section1">${s1.join('')}</div>` : ''}
+    ${s2.length ? `<div class="section-title">(2) Fill in the missing digits.</div><div class="section2-grid">${s2.join('')}</div>` : ''}
+    ${s3.length ? `<div class="section-title">(3) Word problem.</div><div class="section3">${s3.join('')}</div>` : ''}
     <div class="footnote">Print this page, have your child complete it on paper, then use the answer key above to check their work.</div>
   `;
   document.getElementById('answerBox').innerHTML = `<b>Answer key — Worksheet ${worksheetId}</b><ol>${answers.map(a=>`<li>${a}</li>`).join('')}</ol>`;
@@ -214,8 +259,10 @@ function renderSheet(worksheetId, questions){
   } catch (e) {}
 }
 
+const reviewTopics = matchWeakTopics(new URLSearchParams(location.search).get('review'));
+
 function newWorksheet(){
-  renderSheet(randId(6), generateWorksheet());
+  renderSheet(randId(6), generateWorksheet(reviewTopics), reviewTopics.length > 0);
 }
 
 document.getElementById('genBtn').onclick = newWorksheet;

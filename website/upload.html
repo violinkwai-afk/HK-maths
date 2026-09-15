@@ -85,6 +85,8 @@
   .result-mark.unsure{color:#a9821f;}
   .result-weak{margin-top:12px; padding-top:12px; border-top:1px solid rgba(58,43,46,0.06); font-size:.82rem;}
   .result-weak b{display:block; margin-bottom:4px;}
+  .review-link{display:inline-block; margin-top:10px; background:var(--yellow); color:var(--ink);
+    text-decoration:none; font-weight:800; font-size:.8rem; padding:9px 14px; border-radius:12px;}
 </style>
 </head>
 <body>
@@ -248,7 +250,7 @@
       });
     }
 
-    function saveToHistory(data) {
+    function saveToHistory(data, answerKeyText) {
       try {
         const key = 'hk_maths_grading_history';
         const history = JSON.parse(localStorage.getItem(key) || '[]');
@@ -257,6 +259,10 @@
           score: data.score || '',
           weakAreas: Array.isArray(data.weakAreas) ? data.weakAreas : [],
           results: Array.isArray(data.results) ? data.results : [],
+          // Kept so notes.html can show a concrete example question per weak
+          // area, not just an abstract topic name -- lines up positionally
+          // with question numbers for generator-made sheets.
+          answerKeyLines: (answerKeyText || '').split('\n').map(l => l.trim()).filter(Boolean),
         });
         localStorage.setItem(key, JSON.stringify(history.slice(0, 30)));
       } catch (e) {}
@@ -279,7 +285,9 @@
           ${r.note ? '<br><span style="color:var(--muted)">' + escapeHtml(r.note) + '</span>' : ''}</span></div>`;
       });
       if (data.weakAreas && data.weakAreas.length) {
-        html += `<div class="result-weak"><b>弱項分析</b>${data.weakAreas.map(w => escapeHtml(w)).join('、')}</div>`;
+        const reviewUrl = `generator.html?review=${encodeURIComponent(data.weakAreas.join('、'))}`;
+        html += `<div class="result-weak"><b>弱項分析</b>${data.weakAreas.map(w => escapeHtml(w)).join('、')}
+          <a href="${reviewUrl}" class="review-link">下載重點溫習卷 →</a></div>`;
       }
       resultCard.innerHTML = html;
       resultCard.style.display = 'block';
@@ -318,7 +326,7 @@
           notice.style.display = 'block';
         } else {
           renderResult(data, pageFiles);
-          saveToHistory(data);
+          saveToHistory(data, answerKey);
           incrementUsageCount();
         }
       } catch (e) {

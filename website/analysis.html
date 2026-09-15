@@ -36,6 +36,8 @@
   .weak-chip{background:var(--yellow-soft); color:var(--ink); font-size:.8rem; font-weight:700; padding:9px 14px; border-radius:16px; display:flex; align-items:center; gap:6px;}
   .weak-chip .count{background:var(--yellow); color:var(--ink); font-size:.7rem; font-weight:800; padding:1px 7px; border-radius:10px;}
 
+  .group-header{font-size:.78rem; font-weight:800; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; margin:16px 0 8px;}
+  .group-header:first-child{margin-top:0;}
   .history-item{background:var(--card); border-radius:18px; padding:14px 16px; box-shadow:var(--shadow); margin-bottom:12px;}
   .history-top{display:flex; justify-content:space-between; align-items:center; cursor:pointer;}
   .history-date{font-size:.78rem; color:var(--muted);}
@@ -66,7 +68,7 @@
       返回首頁
     </a>
     <h1>錯題分析</h1>
-    <p class="sub">整合每次批改的結果，找出孩子最需要加強的地方。</p>
+    <p class="sub">整合每次批改的結果，找出小朋友最需要加強的地方。</p>
 
     <div id="content"></div>
   </div>
@@ -128,6 +130,18 @@
         html += `</div>`;
       }
 
+      // Group into 本星期/上星期/由月份 so a long history doesn't read as one
+      // undifferentiated wall of cards.
+      function groupLabel(ts) {
+        const days = Math.floor((Date.now() - ts) / 86400000);
+        if (days < 7) return '本星期';
+        if (days < 14) return '上星期';
+        const d = new Date(ts);
+        const now = new Date();
+        return d.getFullYear() === now.getFullYear() ? `${d.getMonth() + 1}月` : `${d.getFullYear()}年${d.getMonth() + 1}月`;
+      }
+      let lastGroup = null;
+
       html += `<div class="section-title">批改紀錄</div>`;
       html += history.map((h, i) => {
         const marks = { true: ['✓','ok'], false: ['✗','no'], null: ['?','unsure'] };
@@ -138,7 +152,11 @@
             <span><b>${escapeHtml(String(r.question || ''))}.</b> ${escapeHtml(r.studentAnswer || '')}
             ${r.note ? '<br><span style="color:var(--muted)">' + escapeHtml(r.note) + '</span>' : ''}</span></div>`;
         }).join('');
+        const group = groupLabel(h.date);
+        const groupHeader = group !== lastGroup ? `<div class="group-header">${group}</div>` : '';
+        lastGroup = group;
         return `
+          ${groupHeader}
           <div class="history-item">
             <div class="history-top" data-i="${i}">
               <div>
