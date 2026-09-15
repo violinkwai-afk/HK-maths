@@ -89,16 +89,16 @@
       返回首頁
     </a>
     <h1>上載試卷</h1>
-    <p class="sub">撳一下影一頁；試卷有幾多頁就撳幾多下，影完全部頁數再一齊提交。</p>
+    <p class="sub">按一下拍攝一頁；試卷有多少頁，就按多少下，拍攝完畢後一併提交。</p>
 
     <button class="capture-btn" id="captureBtn" type="button">
       <div class="capture-icon">
         <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" stroke-width="2.4" stroke-linejoin="round"/><circle cx="12" cy="13.5" r="3.2" stroke-width="2.4"/></svg>
       </div>
-      <span class="label" id="captureLabel">影第 1 頁</span>
-      <span class="hint">撳一下即刻開相機</span>
+      <span class="label" id="captureLabel">拍攝第 1 頁</span>
+      <span class="hint">按一下即開啟相機</span>
     </button>
-    <a class="gallery-link" id="galleryLink">或者從相簿揀相片</a>
+    <a class="gallery-link" id="galleryLink">或從相簿選擇圖片</a>
 
     <input type="file" id="cameraInput" accept="image/*" capture="environment">
     <input type="file" id="galleryInput" accept="image/*" multiple>
@@ -107,11 +107,11 @@
     <div class="count-label" id="countLabel"></div>
 
     <div class="answerkey-auto" id="answerkeyAuto">
-      <span>✓ 已自動帶入呢張試卷嘅答案key</span>
+      <span>✓ 已自動帶入這份試卷的答案key</span>
       <button type="button" id="answerkeyEditLink">編輯</button>
     </div>
     <div class="answerkey-box" id="answerkeyBox">
-      <p class="answerkey-label">未搵到答案key，請貼上（喺「下載試卷」頁按「查看答案」複製）</p>
+      <p class="answerkey-label">未能找到答案key，請貼上（於「下載試卷」頁按「查看答案」複製）</p>
       <textarea id="answerkeyInput" placeholder="例如：1. 43 + 26 = 69"></textarea>
     </div>
 
@@ -160,8 +160,8 @@
           <img src="${URL.createObjectURL(f)}" alt="">
         </div>
       `).join('');
-      captureLabel.textContent = `影第 ${pageFiles.length + 1} 頁`;
-      countLabel.textContent = pageFiles.length ? `已影 ${pageFiles.length} 頁` : '';
+      captureLabel.textContent = `拍攝第 ${pageFiles.length + 1} 頁`;
+      countLabel.textContent = pageFiles.length ? `已拍攝 ${pageFiles.length} 頁` : '';
       const hasPages = pageFiles.length > 0;
       const showEditableBox = hasPages && (!hasAutoKey || editingKey);
       answerkeyAuto.style.display = (hasPages && hasAutoKey && !editingKey) ? 'flex' : 'none';
@@ -226,12 +226,12 @@
       if (!pageFiles.length) return;
       const answerKey = answerkeyInput.value.trim();
       if (!answerKey) {
-        notice.textContent = '請先貼上答案key，先可以準確批改。';
+        notice.textContent = '請先貼上答案key，才能準確批改。';
         notice.style.display = 'block';
         return;
       }
       submitBtn.disabled = true;
-      submitBtn.textContent = `批改緊 ${pageFiles.length} 頁，請稍等…`;
+      submitBtn.textContent = `正在批改 ${pageFiles.length} 頁，請稍候…`;
       notice.style.display = 'none';
       resultCard.style.display = 'none';
 
