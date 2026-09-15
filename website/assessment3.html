@@ -63,8 +63,8 @@
   .sheet.show-answers .bond-child.blank{color:var(--pink-ink);}
   .bond-child.given{color:var(--ink);}
 
-  .split-row{display:flex; align-items:center; gap:6px; font-size:22px; margin-bottom:4px;}
-  .split-bar{width:1px; height:26px; background:var(--border); margin:0 4px;}
+  .split-row{display:flex; align-items:center; gap:4px; font-size:clamp(13px,4.2vw,22px); margin-bottom:4px; flex-wrap:nowrap;}
+  .split-bar{width:2px; height:24px; background:var(--border); margin:0 6px; flex-shrink:0; transform:rotate(20deg); display:inline-block;}
 
   table.calc2{width:100%; border-collapse:collapse; margin-bottom:10px; font-size:14px;}
   table.calc2 td{border:1px solid var(--border); padding:10px 12px;}
@@ -190,7 +190,7 @@ function buildPlan(answers){
       <div class="icon-row">${'○ '.repeat(drawn7a)}</div>
     </div>
     <div class="q-sub">(b) 請畫上多於1個△，使總數不多於18個，而總數是單數。
-      <div class="icon-row">（自行畫上）</div>
+      <div class="icon-row">&nbsp;</div>
     </div></div>`;
   push(`(a)已有${drawn7a}個，答案不唯一，只要總數為雙數且不多於${limit7a}個即可 (b)答案不唯一，只要總數為單數且不多於18個即可`);
 
@@ -205,7 +205,7 @@ function buildPlan(answers){
   const q8 = `<div class="q">8. 寫出事物的次序和數量。 <span style="font-size:12px;color:#666;">(14分)</span>
     <div class="grid3">${gridIcons.map((ic,i)=>`<div class="cell${i===markedIdx?' marked':''}">${ic}</div>`).join('')}</div>
     <div class="q-sub">(a) 上圖共有<span class="fillline">9</span>件物件，有記號的是第<span class="fillline">${row8}</span>行第<span class="fillline">${col8}</span>個。</div>
-    <div class="q-sub">(b) 小明擁有一件圖中的 ${markedIcon}，他說的可能是${dupIdxs.map(i=>`第${Math.floor(i/3)+1}行第${i%3+1}個`).join(' 或 ')}。</div></div>`;
+    <div class="q-sub">(b) 小明擁有一件圖中的 ${markedIcon}，他說的可能是${dupIdxs.map(i=>`第<span class="fillline">${Math.floor(i/3)+1}</span>行第<span class="fillline">${i%3+1}</span>個`).join(' 或 ')}。</div></div>`;
   push(`(a)9, 第${row8}行第${col8}個 (b)${dupIdxs.map(i=>`第${Math.floor(i/3)+1}行第${i%3+1}個`).join('或')}`);
 
   // 9) number bonds + split counting
@@ -236,40 +236,77 @@ function buildPlan(answers){
 
   const page3 = q8+q9;
 
-  // 10) vehicle size comparison
-  const sizes = shuffle([randInt(20,30), randInt(35,50), randInt(55,70)]);
+  // 10) vehicle size comparison -- lengths are shown only as drawn width
+  // (no cm numbers, since the original question is a pure picture comparison)
+  function carSVG(len){
+    const w = len, x0 = 6;
+    return `<svg width="${w+16}" height="36" viewBox="0 0 ${w+16} 36">
+      <rect x="${x0}" y="10" width="${w}" height="14" rx="4" fill="none" stroke="#333" stroke-width="2"/>
+      <rect x="${x0+w*0.15}" y="2" width="${w*0.4}" height="9" rx="2" fill="none" stroke="#333" stroke-width="1.6"/>
+      <circle cx="${x0+w*0.2}" cy="26" r="4.5" fill="none" stroke="#333" stroke-width="1.6"/>
+      <circle cx="${x0+w*0.8}" cy="26" r="4.5" fill="none" stroke="#333" stroke-width="1.6"/>
+    </svg>`;
+  }
+  const sizes = shuffle([randInt(20,30), randInt(38,50), randInt(58,72)]);
   const [s1,s2,s3] = sizes;
   const cmpWord = (a,b) => a>b?'長':a<b?'短':'一樣';
   const q10 = `<div class="q">10. 圈出正確答案。 <span style="font-size:12px;color:#666;">(10分)</span>
     <div class="icon-scene">
-      <span class="scene-item">🚗<span class="scene-label">1號 (${s1}cm)</span></span>
-      <span class="scene-item">🚚<span class="scene-label">2號 (${s2}cm)</span></span>
-      <span class="scene-item">🚐<span class="scene-label">3號 (${s3}cm)</span></span>
+      <span class="scene-item">${carSVG(s1)}<span class="scene-label">1號</span></span>
+      <span class="scene-item">${carSVG(s2)}<span class="scene-label">2號</span></span>
+      <span class="scene-item">${carSVG(s3)}<span class="scene-label">3號</span></span>
     </div>
     <div class="q-sub">(a) 1號車的車身比3號車（<span class="choice"><span class="${cmpWord(s1,s3)==='短'?'correct':''}">短</span><span class="${cmpWord(s1,s3)==='長'?'correct':''}">長</span></span>）。</div>
-    <div class="q-sub">(b) 3號車的車身比2號車（<span class="choice"><span class="${cmpWord(s3,s2)==='短'?'correct':''}">矮</span><span class="${cmpWord(s3,s2)==='長'?'correct':''}">長</span></span>）。</div>
+    <div class="q-sub">(b) 3號車的車身比2號車（<span class="choice"><span class="${cmpWord(s3,s2)==='短'?'correct':''}">短</span><span class="${cmpWord(s3,s2)==='長'?'correct':''}">長</span></span>）。</div>
     <div class="q-sub">(c) 2號車的車身比1號車（<span class="choice"><span class="${cmpWord(s2,s1)==='短'?'correct':''}">短</span><span class="${cmpWord(s2,s1)==='長'?'correct':''}">長</span></span>）。</div>
     <div class="q-sub">(d) 車身最長的是（<span class="fillline">${[1,2,3][sizes.indexOf(Math.max(...sizes))]}</span>）號車。</div>
     <div class="q-sub">(e) 車身最短的是（<span class="fillline">${[1,2,3][sizes.indexOf(Math.min(...sizes))]}</span>）號車。</div></div>`;
   push(`(a)${cmpWord(s1,s3)} (b)${cmpWord(s3,s2)} (c)${cmpWord(s2,s1)} (d)${[1,2,3][sizes.indexOf(Math.max(...sizes))]}號 (e)${[1,2,3][sizes.indexOf(Math.min(...sizes))]}號`);
 
-  // 11) distance/position between 3 robots on a number line + 4 marked spots
+  // 11) distance/position between 3 robots on a real drawn number line + 4 marked spots
+  function numberLineSVG(maxPos, robots, marks){
+    const scale = 3.6, pad = 24, lineY = 44;
+    const w = Math.round(pad*2 + maxPos*scale);
+    let ticks='', numLabels='';
+    for(let i=0;i<=maxPos;i+=10){
+      const x = pad+i*scale;
+      ticks += `<line x1="${x.toFixed(1)}" y1="${lineY-4}" x2="${x.toFixed(1)}" y2="${lineY+4}" stroke="#999" stroke-width="1.2"/>`;
+      numLabels += `<text x="${x.toFixed(1)}" y="${lineY+16}" font-size="9" text-anchor="middle" fill="#999">${i}</text>`;
+    }
+    let robotRow='';
+    robots.forEach((p,i)=>{
+      const x = pad+p*scale;
+      robotRow += `<text x="${x.toFixed(1)}" y="16" font-size="15" text-anchor="middle">🤖</text><text x="${x.toFixed(1)}" y="27" font-size="8.5" text-anchor="middle" fill="#c23f5b" font-weight="700">${i+1}號</text>`;
+    });
+    let markRow='';
+    Object.entries(marks).forEach(([label,p])=>{
+      const x = pad+p*scale;
+      markRow += `<line x1="${x.toFixed(1)}" y1="${lineY}" x2="${x.toFixed(1)}" y2="${(lineY+24).toFixed(1)}" stroke="#f28ba0" stroke-width="1.6" stroke-dasharray="2,2"/><text x="${x.toFixed(1)}" y="${lineY+36}" font-size="11" text-anchor="middle" fill="#c23f5b" font-weight="700">${label}</text>`;
+    });
+    return `<svg width="${w}" height="86" viewBox="0 0 ${w} 86">
+      ${robotRow}
+      <line x1="${pad}" y1="${lineY}" x2="${w-pad}" y2="${lineY}" stroke="#333" stroke-width="2"/>
+      ${ticks}${numLabels}${markRow}
+    </svg>`;
+  }
   const posR1 = 0, posR2 = randInt(20,30), posR3 = randInt(50,70);
-  const dist12 = posR2-posR1, dist23 = posR3-posR2, dist13 = posR3-posR1;
+  const dist12 = posR2-posR1, dist23 = posR3-posR2;
   const nearestTo2 = dist12 < dist23 ? 1 : 3;
-  const farthest13 = '遠'; // 3 vs 1 is always the largest span in this layout
-  const posA = Math.round((posR1+posR2)/2), posD = Math.round((posR1+posR2)/2)-5;
+  const posA = Math.round((posR1+posR2)/2);
   const posC = Math.round((posR2+posR3)/2);
-  const nearestToDvs2 = Math.abs(posD-posR2) < Math.abs(posA-posR2) ? 'D' : 'A';
+  const posD = Math.max(2, posA - 8);
+  const posB = posR3 + 12;
+  const marks = {A:posA, B:posB, C:posC, D:posD};
+  const nearestMarkTo2 = Object.keys(marks).reduce((best,k) => Math.abs(marks[k]-posR2) < Math.abs(marks[best]-posR2) ? k : best, 'A');
+  const maxPos = posB + 10;
   const q11 = `<div class="q">11. 在適當位置填上答案。 <span style="font-size:12px;color:#666;">(10分)</span>
-    <div class="icon-scene">🤖<span class="scene-label">1號 (位置${posR1})</span> 🤖<span class="scene-label">2號 (位置${posR2})</span> 🤖<span class="scene-label">3號 (位置${posR3})</span></div>
-    <div class="q-sub">位置A=${posA}，位置B=${posR3+15}，位置C=${posC}，位置D=${posD}</div>
+    <div class="shapes-row">${numberLineSVG(maxPos, [posR1,posR2,posR3], marks)}</div>
     <div class="q-sub">(a) <span class="fillline">${nearestTo2}</span>號機械人與2號機械人的距離最近。</div>
     <div class="q-sub">(b) 3號機械人與1號機械人的距離最<span class="fillline">遠</span>。</div>
     <div class="q-sub">(c) 2號機械人與<span class="fillline">1</span>號機械人的距離比<span class="fillline">3</span>號機械人與2號機械人的距離${dist12>dist23?'遠':'近'}。</div>
-    <div class="q-sub">(d) 小明距離2號機械人最近，他站在位置<span class="fillline">${nearestToDvs2}</span>。</div>
-    <div class="q-sub">(e) 小美在2號和3號機械人之間，她站在位置<span class="fillline">C</span>。</div></div>`;
-  push(`(a)${nearestTo2}號 (b)遠 (c)${dist12>dist23?'遠':'近'} (d)${nearestToDvs2} (e)C`);
+    <div class="q-sub">(d) 在 A、B、C、D 四個位置中，距離2號機械人最近的是<span class="fillline">${nearestMarkTo2}</span>。</div>
+    <div class="q-sub">(e) 在2號和3號機械人之間的位置是<span class="fillline">C</span>。</div></div>`;
+  push(`(a)${nearestTo2}號 (b)遠 (c)${dist12>dist23?'遠':'近'} (d)${nearestMarkTo2} (e)C`);
 
   const page4 = q10+q11;
 
