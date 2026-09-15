@@ -249,6 +249,12 @@ function renderSheet(worksheetId, questions, isReview){
   // endpoint -- worksheets are randomized client-side with no server-side
   // record, so this is the only copy of "what's actually correct" for
   // this specific worksheet instance.
+  //
+  // Kept as a BANK of recent worksheets, not just the latest one: a parent
+  // who prints several in one sitting (common -- "print a few for the
+  // week") then grades them later, out of order, needs each one's own
+  // answer key recoverable by its printed ID, not just whichever was
+  // generated most recently.
   try {
     const plainAnswers = answers.map(a => a.replace(/<[^>]+>/g, ''));
     localStorage.setItem('hk_maths_answer_key', JSON.stringify({
@@ -256,6 +262,10 @@ function renderSheet(worksheetId, questions, isReview){
       answers: plainAnswers,
       savedAt: Date.now()
     }));
+    const bankKey = 'hk_maths_worksheet_bank';
+    const bank = JSON.parse(localStorage.getItem(bankKey) || '[]');
+    bank.unshift({ worksheetId, answers: plainAnswers, savedAt: Date.now() });
+    localStorage.setItem(bankKey, JSON.stringify(bank.slice(0, 15)));
   } catch (e) {}
 }
 

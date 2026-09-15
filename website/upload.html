@@ -171,7 +171,7 @@
       try { localStorage.setItem(usageKey(), String(getUsageCount() + 1)); } catch (e) {}
     }
     let editingKey = false;
-    let expectedWorksheetId = null;
+    let worksheetBank = [];
     const atMonthlyLimit = getUsageCount() >= MAX_SUBMISSIONS_PER_MONTH;
     if (atMonthlyLimit) limitBanner.hidden = false;
 
@@ -180,8 +180,12 @@
       if (saved && saved.answers && saved.answers.length) {
         answerkeyInput.value = saved.answers.join('\n');
         hasAutoKey = true;
-        expectedWorksheetId = saved.worksheetId || null;
       }
+      // The bank holds every worksheet generated recently (not just the
+      // latest) -- lets the server match whichever one was actually
+      // photographed, so grading an older printout from a batch doesn't
+      // wrongly trigger a "wrong worksheet" warning.
+      worksheetBank = JSON.parse(localStorage.getItem('hk_maths_worksheet_bank') || '[]');
     } catch (e) {}
 
     answerkeyEditLink.addEventListener('click', () => {
@@ -374,16 +378,18 @@
           data: await fileToBase64(f),
           mediaType: 'image/jpeg',
         })));
-        // Only ask the server to verify the worksheet ID when we're still
-        // using the auto-filled key as-is -- if the parent edited/pasted
-        // their own answer key (a different, non-generated paper), there is
-        // no expected ID to check against and doing so would just produce
-        // false "doesn't match" warnings.
-        const checkWorksheetId = (hasAutoKey && !editingKey) ? expectedWorksheetId : null;
+        // Only send the worksheet bank when we're still using an auto-filled
+        // key as-is -- if the parent edited/pasted their own answer key (a
+        // different, non-generated paper), there's nothing of ours to match
+        // against. Sending every recently-generated worksheet (not just the
+        // latest) lets the server find whichever one was actually
+        // photographed, so grading an older printout from a batch doesn't
+        // wrongly trigger a "wrong worksheet" warning.
+        const useBank = (hasAutoKey && !editingKey) ? worksheetBank : [];
         const res = await fetch('/api/grade', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ images, answerKey, expectedWorksheetId: checkWorksheetId }),
+          body: JSON.stringify({ images, answerKey, worksheetBank: useBank }),
         });
         const data = await res.json();
         if (!res.ok) {

@@ -72,7 +72,7 @@ async function handleGrade(request, env) {
     return json({ error: "bad_request", message: "請求格式錯誤。" }, 400);
   }
 
-  let { image, images, mediaType, answerKey, expectedWorksheetId } = body;
+  let { image, images, mediaType, answerKey, worksheetBank } = body;
   if (!images && image) images = [{ data: image, mediaType }];
   if (!images || !images.length || !answerKey) {
     return json({ error: "bad_request", message: "缺少相片或答案key。" }, 400);
@@ -88,21 +88,33 @@ async function handleGrade(request, env) {
   // Notes are kept intentionally terse (a few characters, correct answers get
   // none at all) -- verbose per-question explanations were the single
   // biggest driver of output-token cost on dense, many-page worksheets.
+  //
   // Generator-made worksheets print "WORKSHEET <id>" near the top and again
-  // in the footer (deliberately at both ends of the page, so a casual photo
-  // that crops one end still catches the other). When the client is still
-  // using an auto-filled key as-is, it sends the ID it expects to see --
-  // this catches the silent-mismatch case where a parent photographs a
-  // *different* physical paper than the one that key was generated for,
-  // which would otherwise grade nonsense against the wrong answers with no
-  // indication anything was wrong.
-  const worksheetIdCheck = expectedWorksheetId ? `
-5. 呢份卷page頂或底應該印住"WORKSHEET ${expectedWorksheetId}"字樣。如果相片入面睇唔到呢個編號、或者編號同"${expectedWorksheetId}"唔一致（例如係完全唔同版面嘅卷），喺回覆嘅JSON最外層加一個 "worksheetMismatch": true，並且照常盡力批改。如果編號脗合或者睇唔清但版面明顯係同一類型嘅卷，"worksheetMismatch" 設為 false。` : '';
+  // in the footer (deliberately at both ends, so a casual photo cropping one
+  // end still catches the other). A parent who prints several worksheets in
+  // one sitting and grades them later, out of order, needs the RIGHT one's
+  // answers matched by that printed ID -- not just whichever was generated
+  // most recently -- so the client sends every recently-generated worksheet
+  // (worksheetBank) rather than a single expected one. The AI reads the ID
+  // off the actual photo and picks the matching entry itself, in this same
+  // call (no extra round trip / cost).
+  const MAX_BANK = 15;
+  const bank = Array.isArray(worksheetBank) ? worksheetBank.slice(0, MAX_BANK) : [];
+  const answerKeySection = bank.length
+    ? `呢個網站最近出過以下幾份卷，每份都有獨立編號，通常印喺page頂或底（"WORKSHEET <編號>"）：
+
+${bank.map((w) => `[編號 ${w.worksheetId}]\n${(w.answers || []).join('\n')}`).join('\n\n')}
+
+請先睇相片page頂或底印住嘅編號，揾返上面邊一份編號脗合，用嗰一份嘅答案嚟批改每一題。`
+    : `以下是這份練習卷的正確答案（按題號排列）：
+${answerKey}`;
+  const worksheetIdCheck = bank.length
+    ? `\n5. 如果相片入面完全睇唔到「WORKSHEET 編號」呢種格式、或者編號同上面列出嘅任何一份都對唔上（例如係另一份唔係呢個網出嘅卷），將 "worksheetMismatch" 設為 true，並改用「${answerKey}」呢份答案盡量批改。如果編號脗合到其中一份，"worksheetMismatch" 設為 false，用嗰一份嘅答案批改，唔使理返答案key嗰段文字。`
+    : '';
 
   const prompt = `你是一位細心的小學數學老師，正在批改學生完成的練習卷相片（共${images.length}頁，屬於同一份卷）。
 
-以下是這份練習卷的正確答案（按題號排列）：
-${answerKey}
+${answerKeySection}
 
 請逐題比對相片中學生手寫的答案與上述正確答案。
 
