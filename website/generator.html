@@ -322,7 +322,16 @@ function renderSheet(){
   } catch (e) {}
 }
 
-const reviewTopics = matchWeakTopics(new URLSearchParams(location.search).get('review'));
+const urlParams = new URLSearchParams(location.search);
+const reviewTopics = matchWeakTopics(urlParams.get('review'));
+(function initLang(){
+  const urlLang = urlParams.get('lang');
+  let stored = null;
+  try { stored = localStorage.getItem('hk_maths_lang'); } catch(e){}
+  if (urlLang === 'en' || urlLang === 'zh') currentLang = urlLang;
+  else if (stored === 'en' || stored === 'zh') currentLang = stored;
+  document.getElementById('langBtn').textContent = STR[currentLang].langBtnLabel;
+})();
 
 function newWorksheet(){
   currentWorksheetId = randId(6);
@@ -336,6 +345,7 @@ document.getElementById('genBtn').onclick = newWorksheet;
 document.getElementById('printBtn').onclick = () => window.print();
 document.getElementById('langBtn').onclick = () => {
   currentLang = currentLang === 'en' ? 'zh' : 'en';
+  try { localStorage.setItem('hk_maths_lang', currentLang); } catch(e){}
   renderSheet();
   document.getElementById('langBtn').textContent = STR[currentLang].langBtnLabel;
   const sheet = document.getElementById('sheet');

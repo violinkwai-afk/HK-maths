@@ -36,6 +36,14 @@
   .card-sub{font-size:.75rem; color:var(--muted); margin-top:2px;}
   .card-arrow{margin-left:auto; color:var(--muted); font-size:1.1rem; flex-shrink:0;}
 
+  .lang-row{display:flex; gap:8px; margin-bottom:18px;}
+  .lang-btn{
+    flex:1; text-align:center; padding:9px 0; border-radius:12px; border:1.5px solid var(--pink-soft);
+    background:#fff; color:var(--muted); font-weight:700; font-size:.85rem; cursor:pointer;
+  }
+  .lang-btn.active{background:var(--pink); border-color:var(--pink); color:#fff;}
+  .lang-note{font-size:.72rem; color:var(--muted); margin:-10px 0 18px;}
+
   @media (min-width: 760px){ .page{max-width:600px;} }
 </style>
 </head>
@@ -48,29 +56,59 @@
     <h1>選擇試卷</h1>
     <p class="sub">小一數學 · 上學期 — 揀一份，即刻出卷、列印。</p>
 
-    <a class="card" href="generator.html">
+    <div class="lang-row">
+      <div class="lang-btn" id="langZh">中文</div>
+      <div class="lang-btn" id="langEn">English</div>
+    </div>
+    <p class="lang-note" id="langNote"></p>
+
+    <a class="card" data-base="generator.html" href="generator.html">
       <div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 3.5h7l3 3v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z" stroke-width="2.6" stroke-linejoin="round"/><path d="M14 3.5v3h3" stroke-width="2.6" stroke-linejoin="round"/></svg></div>
       <div><div class="card-title">小一數學上學期1</div><div class="card-sub">兩位數加減、直式填空</div></div>
       <div class="card-arrow">›</div>
     </a>
 
-    <a class="card" href="assessment.html">
+    <a class="card" data-base="assessment.html" href="assessment.html">
       <div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 3h6v4H9z" stroke-width="2.4" stroke-linejoin="round"/><path d="M6 5h1.5M16.5 5H18a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" stroke-width="2.4" stroke-linejoin="round"/><path d="M8 12h8M8 15.5h5" stroke-width="2.2" stroke-linecap="round"/></svg></div>
       <div><div class="card-title">小一數學上學期2</div><div class="card-sub">數學小評估（三）· 數的認識、選擇題、圖像應用題</div></div>
       <div class="card-arrow">›</div>
     </a>
 
-    <a class="card" href="assessment2.html">
+    <a class="card" data-base="assessment2.html" href="assessment2.html">
       <div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="4" width="14" height="17" rx="1.5" stroke-width="2.4"/><path d="M8 8h8M8 12h8M8 16h5" stroke-width="2.2" stroke-linecap="round"/></svg></div>
       <div><div class="card-title">小一數學上學期3</div><div class="card-sub">計算、時間、月曆、形狀（5頁）</div></div>
       <div class="card-arrow">›</div>
     </a>
 
-    <a class="card" href="assessment3.html">
+    <a class="card" data-base="assessment3.html" href="assessment3.html">
       <div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2.4"/><path d="M8 12h8M12 8v8" stroke-width="2.2" stroke-linecap="round"/></svg></div>
       <div><div class="card-title">小一數學上學期4</div><div class="card-sub">上下左右、排序、數量比較</div></div>
       <div class="card-arrow">›</div>
     </a>
   </div>
+
+  <script>
+    const cards = document.querySelectorAll('.card[data-base]');
+    // only generator.html has an English version today -- the others stay
+    // Chinese-only regardless of this choice, until we build EN for them too
+    const ENGLISH_READY = new Set(['generator.html']);
+    function applyLang(lang){
+      document.getElementById('langZh').classList.toggle('active', lang==='zh');
+      document.getElementById('langEn').classList.toggle('active', lang==='en');
+      document.getElementById('langNote').textContent = lang==='en'
+        ? '（暫時得第1份卷有英文版，其餘3份卷會照樣顯示中文）'
+        : '';
+      cards.forEach(a => {
+        const base = a.dataset.base;
+        a.href = (lang==='en' && ENGLISH_READY.has(base)) ? `${base}?lang=en` : base;
+      });
+      try { localStorage.setItem('hk_maths_lang', lang); } catch(e){}
+    }
+    let initial = 'zh';
+    try { initial = localStorage.getItem('hk_maths_lang') || 'zh'; } catch(e){}
+    applyLang(initial);
+    document.getElementById('langZh').onclick = () => applyLang('zh');
+    document.getElementById('langEn').onclick = () => applyLang('en');
+  </script>
 </body>
 </html>
