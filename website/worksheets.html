@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>選擇試卷 — Little Steps</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --ink:#3a2b2e; --muted:#9c8288; --card:#ffffff;
+    --pink:#f28ba0; --pink-soft:#fbd9df; --pink-ink:#c23f5b;
+    --yellow:#f6c453; --yellow-soft:#fdedc7;
+    --shadow: 0 2px 10px rgba(58,43,46,0.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; color:var(--ink);
+    background:linear-gradient(180deg, #fcf2f3 0%, #fffbea 55%, #fffbea 100%);
+    background-attachment:fixed;
+    font-family:"Noto Sans TC","PingFang TC",-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  .page{max-width:430px; margin:0 auto; padding:20px 20px 40px;}
+  .back{display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.85rem; font-weight:700; margin-bottom:20px;}
+  h1{font-size:1.3rem; margin:0 0 4px; font-weight:800;}
+  .sub{font-size:.85rem; color:var(--muted); margin:0 0 20px; line-height:1.55;}
+
+  .card{
+    display:flex; align-items:center; gap:14px; background:var(--card); border-radius:18px;
+    padding:16px; box-shadow:var(--shadow); text-decoration:none; margin-bottom:14px;
+  }
+  .card-icon{width:44px; height:44px; border-radius:13px; background:var(--pink); color:#fff;
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;}
+  .card:nth-child(odd) .card-icon{background:var(--pink);}
+  .card:nth-child(even) .card-icon{background:var(--yellow);}
+  .card-title{font-weight:700; font-size:.95rem;}
+  .card-sub{font-size:.75rem; color:var(--muted); margin-top:2px;}
+  .card-arrow{margin-left:auto; color:var(--muted); font-size:1.1rem; flex-shrink:0;}
+
+  @media (min-width: 760px){ .page{max-width:600px;} }
+</style>
+</head>
+<body>
+  <div class="page">
+    <a class="back" href="index.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 5l-7 7 7 7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      返回首頁
+    </a>
+    <h1>選擇試卷</h1>
+    <p class="sub">揀一份，即刻出卷、列印。</p>
+
+    <a class="card" href="generator.html">
+      <div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 3.5h7l3 3v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z" stroke-width="2.6" stroke-linejoin="round"/><path d="M14 3.5v3h3" stroke-width="2.6" stroke-linejoin="round"/></svg></div>
+      <div><div class="card-title">加減練習卷</div><div class="card-sub">小一 · 兩位數加減、直式填空</div></div>
+      <div class="card-arrow">›</div>
+    </a>
+
+    <a class="card" href="assessment.html">
+      <div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 3h6v4H9z" stroke-width="2.4" stroke-linejoin="round"/><path d="M6 5h1.5M16.5 5H18a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z" stroke-width="2.4" stroke-linejoin="round"/><path d="M8 12h8M8 15.5h5" stroke-width="2.2" stroke-linecap="round"/></svg></div>
+      <div><div class="card-title">數學小評估</div><div class="card-sub">小一 · 數的認識、選擇題、圖像應用題</div></div>
+      <div class="card-arrow">›</div>
+    </a>
+
+    <a class="card" href="assessment2.html">
+      <div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="5" y="4" width="14" height="17" rx="1.5" stroke-width="2.4"/><path d="M8 8h8M8 12h8M8 16h5" stroke-width="2.2" stroke-linecap="round"/></svg></div>
+      <div><div class="card-title">數學科練習卷（全面版）</div><div class="card-sub">小一 · 計算、時間、月曆、形狀（5頁）</div></div>
+      <div class="card-arrow">›</div>
+    </a>
+
+    <a class="card" href="assessment3.html">
+      <div class="card-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2.4"/><path d="M8 12h8M12 8v8" stroke-width="2.2" stroke-linecap="round"/></svg></div>
+      <div><div class="card-title">數學模擬卷（方位與空間）</div><div class="card-sub">小一 · 上下左右、排序、數量比較</div></div>
+      <div class="card-arrow">›</div>
+    </a>
+  </div>
+</body>
+</html>
