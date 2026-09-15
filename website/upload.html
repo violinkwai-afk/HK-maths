@@ -83,6 +83,10 @@
   .result-mark.ok{color:#2f9e5c;}
   .result-mark.no{color:#d9455f;}
   .result-mark.unsure{color:#a9821f;}
+  .confirm-row{margin-top:6px; font-size:.78rem; color:var(--muted); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .confirm-btn{border:none; border-radius:10px; padding:5px 12px; font-family:inherit; font-weight:800; font-size:.78rem; cursor:pointer;}
+  .confirm-btn.ok{background:#dcf3e6; color:#2f9e5c;}
+  .confirm-btn.no{background:var(--pink-soft); color:var(--pink-ink);}
   .result-weak{margin-top:12px; padding-top:12px; border-top:1px solid rgba(58,43,46,0.06); font-size:.82rem;}
   .result-weak b{display:block; margin-bottom:4px;}
   .review-link{display:inline-block; margin-top:10px; background:var(--yellow); color:var(--ink);
@@ -268,7 +272,42 @@
       } catch (e) {}
     }
 
+    // The AI is told never to guess on genuinely ambiguous handwriting --
+    // but leaving those as a permanent "?" isn't useful to a parent who can
+    // just look at the paper and tell in one second. This is the "light
+    // safety net" human-confirm step: resolve just the handful of unsure
+    // answers by tapping 啱/錯, no full manual re-grading.
+    let currentResultData = null;
+    let currentSubmittedFiles = null;
+
+    function recomputeScore(data) {
+      const graded = (data.results || []).filter(r => r.correct !== null);
+      const correctCount = graded.filter(r => r.correct === true).length;
+      data.score = `${correctCount} / ${graded.length}`;
+    }
+
+    function confirmAnswer(question, isCorrect) {
+      if (!currentResultData) return;
+      const item = currentResultData.results.find(r => String(r.question) === String(question));
+      if (!item) return;
+      item.correct = isCorrect;
+      item.note = '';
+      recomputeScore(currentResultData);
+      renderResult(currentResultData, currentSubmittedFiles);
+      try {
+        const key = 'hk_maths_grading_history';
+        const history = JSON.parse(localStorage.getItem(key) || '[]');
+        if (history[0]) {
+          history[0].results = currentResultData.results;
+          history[0].score = currentResultData.score;
+          localStorage.setItem(key, JSON.stringify(history));
+        }
+      } catch (e) {}
+    }
+
     function renderResult(data, submittedFiles) {
+      currentResultData = data;
+      currentSubmittedFiles = submittedFiles;
       const marks = { true: ['✓','ok'], false: ['✗','no'], null: ['?','unsure'] };
       let html = '';
       if (submittedFiles && submittedFiles.length) {
@@ -280,9 +319,16 @@
       (data.results || []).forEach(r => {
         const key = r.correct === true ? 'true' : r.correct === false ? 'false' : 'null';
         const [sym, cls] = marks[key];
+        const confirmUi = r.correct === null
+          ? `<div class="confirm-row">呢題睇唔清楚，麻煩你人手核對一下：
+              <button type="button" class="confirm-btn ok" data-q="${escapeHtml(String(r.question))}" data-v="true">啱</button>
+              <button type="button" class="confirm-btn no" data-q="${escapeHtml(String(r.question))}" data-v="false">錯</button>
+            </div>`
+          : '';
         html += `<div class="result-item"><span class="result-mark ${cls}">${sym}</span>
           <span><b>${escapeHtml(String(r.question || ''))}.</b> ${escapeHtml(r.studentAnswer || '')}
-          ${r.note ? '<br><span style="color:var(--muted)">' + escapeHtml(r.note) + '</span>' : ''}</span></div>`;
+          ${r.note ? '<br><span style="color:var(--muted)">' + escapeHtml(r.note) + '</span>' : ''}
+          ${confirmUi}</span></div>`;
       });
       if (data.weakAreas && data.weakAreas.length) {
         const reviewUrl = `generator.html?review=${encodeURIComponent(data.weakAreas.join('、'))}`;
@@ -292,6 +338,12 @@
       resultCard.innerHTML = html;
       resultCard.style.display = 'block';
     }
+
+    resultCard.addEventListener('click', (e) => {
+      const btn = e.target.closest('.confirm-btn');
+      if (!btn) return;
+      confirmAnswer(btn.dataset.q, btn.dataset.v === 'true');
+    });
 
     function escapeHtml(s) {
       return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
