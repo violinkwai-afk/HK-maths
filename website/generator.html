@@ -219,7 +219,7 @@ function renderSheet(worksheetId, questions, isReview){
           <div class="row"><span class="box"><span class="ans-value">${q.topTens}</span></span><span class="digit">${q.topOnes}</span></div>
           <div class="row"><span class="op">-</span><span class="digit">${q.subTens}</span><span class="box"><span class="ans-value">${q.subOnes}</span></span></div>
           <div class="line"></div>
-          <div class="row result">${String(q.result).padStart(2,'0')}</div>
+          <div class="row result">${String(q.result).padStart(2,'0').split('').map(d=>`<span class="digit">${d}</span>`).join('')}</div>
         </div></div>`);
       answers.push(q.text);
       n++;
