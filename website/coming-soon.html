@@ -38,7 +38,7 @@
     <a href="index.html">返回首頁</a>
   </div>
   <script>
-    const names = {analysis:'錯題分析', notes:'筆記'};
+    const names = {analysis:'錯題分析', notes:'筆記', flashcard:'Flash Card'};
     const f = new URLSearchParams(location.search).get('feature');
     if (names[f]) document.getElementById('title').textContent = names[f] + ' 仍在開發中';
   </script>

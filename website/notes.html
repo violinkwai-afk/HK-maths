@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>筆記 — Little Steps</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --ink:#3a2b2e; --muted:#9c8288; --card:#ffffff;
+    --pink:#f28ba0; --pink-soft:#fbd9df; --pink-ink:#c23f5b;
+    --yellow:#f6c453; --yellow-soft:#fdedc7;
+    --shadow: 0 2px 10px rgba(58,43,46,0.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; color:var(--ink);
+    background:linear-gradient(180deg, #fcf2f3 0%, #fffbea 55%, #fffbea 100%);
+    background-attachment:fixed;
+    font-family:"Chiron GoRound TC","PingFang TC",-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  .page{max-width:430px; margin:0 auto; padding:20px 20px 40px;}
+  .back{display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.85rem; font-weight:700; margin-bottom:20px;}
+  h1{font-size:1.3rem; margin:0 0 4px; font-weight:800;}
+  .sub{font-size:.85rem; color:var(--muted); margin:0 0 20px; line-height:1.55;}
+
+  .note-card{background:var(--card); border-radius:18px; padding:16px; box-shadow:var(--shadow); margin-bottom:14px;}
+  .note-top{display:flex; justify-content:space-between; align-items:flex-start; gap:10px;}
+  .note-q{font-weight:800; font-size:.95rem;}
+  .note-date{font-size:.72rem; color:var(--muted); white-space:nowrap;}
+  .note-answer{font-size:.85rem; margin-top:6px; color:var(--ink);}
+  .note-answer b{color:var(--pink-ink);}
+  .note-reason{font-size:.78rem; color:var(--muted); margin-top:4px;}
+  .note-tags{display:flex; flex-wrap:wrap; gap:6px; margin-top:10px;}
+  .note-tag{background:var(--yellow-soft); color:var(--ink); font-size:.72rem; font-weight:700; padding:5px 10px; border-radius:10px;}
+  .note-badge{flex-shrink:0; font-size:.72rem; font-weight:800; padding:4px 9px; border-radius:10px;}
+  .note-badge.wrong{background:var(--pink-soft); color:var(--pink-ink);}
+  .note-badge.unsure{background:var(--yellow-soft); color:#8a5a12;}
+
+  .empty{background:var(--card); border-radius:18px; padding:32px 20px; text-align:center; box-shadow:var(--shadow);}
+  .empty-icon{width:52px; height:52px; border-radius:16px; background:var(--pink-soft); color:var(--pink-ink);
+    display:flex; align-items:center; justify-content:center; margin:0 auto 14px;}
+  .empty p{font-size:.85rem; color:var(--muted); line-height:1.6; margin:0 0 18px;}
+  .empty a{display:inline-block; background:var(--pink); color:#ffffff; text-decoration:none; font-weight:800;
+    font-size:.85rem; padding:12px 22px; border-radius:16px; box-shadow:var(--shadow);}
+
+  @media (min-width: 760px){ .page{max-width:820px;} }
+</style>
+</head>
+<body>
+  <div class="page">
+    <a class="back" href="index.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 5l-7 7 7 7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      返回首頁
+    </a>
+    <h1>筆記</h1>
+    <p class="sub">根據批改結果中答錯或不確定的題目，自動整理成重點筆記。</p>
+
+    <div id="content"></div>
+  </div>
+
+  <script>
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+    function formatDate(ts) {
+      const d = new Date(ts);
+      return `${d.getMonth() + 1}月${d.getDate()}日`;
+    }
+
+    let history = [];
+    try {
+      history = JSON.parse(localStorage.getItem('hk_maths_grading_history') || '[]');
+    } catch (e) {}
+
+    const notes = [];
+    history.forEach(h => {
+      (h.results || []).forEach(r => {
+        if (r.correct === false || r.correct === null) {
+          notes.push({
+            date: h.date,
+            weakAreas: h.weakAreas || [],
+            question: r.question,
+            studentAnswer: r.studentAnswer,
+            note: r.note,
+            unsure: r.correct === null,
+          });
+        }
+      });
+    });
+
+    const content = document.getElementById('content');
+
+    if (!notes.length) {
+      content.innerHTML = `
+        <div class="empty">
+          <div class="empty-icon">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 4h8l4 4v12a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1z" stroke-width="2.4" stroke-linejoin="round"/><path d="M9 11h6M9 15h6" stroke-width="2.4" stroke-linecap="round"/></svg>
+          </div>
+          <p>暫時未有筆記。<br>批改試卷後，答錯或不確定的題目會自動整理到這裡。</p>
+          <a href="upload.html">前往批改試卷</a>
+        </div>
+      `;
+    } else {
+      content.innerHTML = notes.map(n => `
+        <div class="note-card">
+          <div class="note-top">
+            <div class="note-q">第 ${escapeHtml(String(n.question || ''))} 題</div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="note-badge ${n.unsure ? 'unsure' : 'wrong'}">${n.unsure ? '不確定' : '答錯'}</span>
+              <span class="note-date">${formatDate(n.date)}</span>
+            </div>
+          </div>
+          <div class="note-answer">作答：<b>${escapeHtml(n.studentAnswer || '（未能辨識）')}</b></div>
+          ${n.note ? `<div class="note-reason">${escapeHtml(n.note)}</div>` : ''}
+          ${n.weakAreas.length ? `<div class="note-tags">${n.weakAreas.map(w => `<span class="note-tag">${escapeHtml(w)}</span>`).join('')}</div>` : ''}
+        </div>
+      `).join('');
+    }
+  </script>
+</body>
+</html>
