@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>數學科練習卷 — Little Steps</title>
+<style>
+  :root{
+    --ink:#222; --muted:#666; --card:#ffffff; --border:#333;
+    --pink:#f28ba0; --pink-soft:#fbd9df; --pink-ink:#c23f5b;
+    --yellow:#f6c453; --yellow-soft:#fdedc7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    color:var(--ink); margin:0; background:#f3ede4;
+    font-family:"Noto Sans TC","PingFang TC",-apple-system,BlinkMacSystemFont,sans-serif;
+    padding-block:20px; padding-inline:16px;
+  }
+  .wrap{max-width:680px; margin:0 auto;}
+  .back{display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.85rem; font-weight:700; margin-bottom:16px;}
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; justify-content:center;}
+  button{
+    font-family:inherit; font-size:.85rem; font-weight:800; padding:11px 18px;
+    border-radius:14px; border:none; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,0.08);
+  }
+  button:active{transform:translateY(1px);}
+  #genBtn{background:var(--pink); color:#fff;}
+  #printBtn{background:var(--yellow); color:var(--ink);}
+  #answerBtn{background:#fff; color:var(--ink); border:1px solid #ccc;}
+
+  .sheet{background:#fff; padding:28px 26px; box-shadow:0 2px 14px rgba(0,0,0,0.1); font-size:14px; line-height:1.65;}
+  .sheet-header{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;}
+  .sheet-brand{font-family:"Short Stack",cursive; font-size:1.1rem; color:var(--pink-ink);}
+  .paper-title{text-align:center; font-weight:700; font-size:16px; margin:2px 0 12px;}
+  .page-tag{text-align:right; font-size:12px; color:#444; white-space:nowrap;}
+
+  .fillline{display:inline-block; min-width:60px; border-bottom:1px solid var(--border); text-align:center; font-weight:700; color:transparent;}
+  .sheet.show-answers .fillline{color:var(--pink-ink);}
+  .choice{display:inline-flex; gap:14px; margin-left:4px;}
+  .choice span{padding:1px 6px; border-radius:3px;}
+  .sheet.show-answers .choice span.correct{background:var(--pink-soft); font-weight:700;}
+
+  .q{margin-bottom:16px;}
+  .q-sub{margin:4px 0 0 18px; font-size:13.5px;}
+
+  .card3{display:inline-flex; gap:8px; margin:6px 0;}
+  .card3 .digitcard{width:34px; height:38px; border:1.5px solid var(--border); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:16px;}
+
+  .abacus{display:flex; gap:18px; margin:8px 0; align-items:flex-end;}
+  .abacus-col{display:flex; flex-direction:column; align-items:center; gap:3px;}
+  .bead{width:20px; height:14px; border-radius:50%; background:#c8b89a; border:1px solid #a0906f;}
+  .abacus-label{border-top:1.5px solid var(--border); width:100%; text-align:center; font-size:12px; padding-top:3px; margin-top:4px;}
+
+  .mcq{margin-bottom:12px; font-size:13.5px;}
+  .mcq-opts{display:grid; grid-template-columns:1fr 1fr; gap:6px 20px; margin-top:4px;}
+  .opt{display:flex; align-items:center; gap:6px;}
+  .radio{width:13px; height:13px; border-radius:50%; border:1.3px solid var(--border); flex-shrink:0; display:inline-block;}
+  .sheet.show-answers .opt.correct .radio{background:var(--border);}
+
+  table.calendar{width:100%; border-collapse:collapse; margin:8px 0; font-size:12.5px; text-align:center;}
+  table.calendar th, table.calendar td{border:1px solid var(--border); padding:6px 2px;}
+  table.calendar th{background:#f5f0e8;}
+  .cal-mark{font-size:14px;}
+
+  .shapes-row{display:flex; gap:16px; align-items:center; margin:8px 0; flex-wrap:wrap;}
+  .shape-lbl{text-align:center; font-size:12px;}
+
+  .footnote{margin-top:20px; font-size:.75rem; color:#999; text-align:center; border-top:1px dashed #ccc; padding-top:10px;}
+  .paper-credit{font-family:"Short Stack",cursive; font-size:.85rem; color:var(--pink-ink); margin-top:6px;}
+  .page-break{border-top:2px dashed #ccc; margin:24px 0 20px; padding-top:4px;}
+
+  @media print {
+    body{background:#fff; padding:0;}
+    .no-print{display:none;}
+    .sheet{box-shadow:none; padding:0;}
+    .fillline,.choice span.correct,.opt.correct .radio{color:transparent !important; background:none !important;}
+    .page-break{page-break-before:always; border-top:none; margin-top:0;}
+  }
+</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Short+Stack&display=swap" rel="stylesheet">
+
+<div class="wrap">
+  <a class="back no-print" href="index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 5l-7 7 7 7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    返回首頁
+  </a>
+
+  <div class="toolbar no-print">
+    <button id="genBtn">重新出卷</button>
+    <button id="printBtn">列印 / 儲存為 PDF</button>
+    <button id="answerBtn">查看答案</button>
+  </div>
+
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script>
+function randId(n){ const c="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; let s=""; for(let i=0;i<n;i++) s+=c[Math.floor(Math.random()*c.length)]; return s; }
+function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+const WD = ['日','一','二','三','四','五','六'];
+function daysInMonth(y,m){ return new Date(y,m,0).getDate(); }
+function dayOfWeek(y,m,d){ return new Date(y,m-1,d).getDay(); }
+
+function buildPlan(answers){
+  let n = 1;
+  const push = (ans) => { answers.push(`${n}) ${ans}`); n++; };
+
+  // 1) four fill-in-blank items
+  const a1 = randInt(0,9), b1 = randInt(1,9);
+  const c1 = randInt(10,18), d1 = c1 - randInt(1,c1-1);
+  const e1a = randInt(10,20), e1b = randInt(10,20);
+  const f1a = randInt(5,20), f1b = randInt(5,20);
+  const q1 = `<div class="q">1. 算一算。 <span style="font-size:12px;color:#666;">12%@3%</span>
+    <div class="q-sub">(a) ${a1} + ${b1} = <span class="fillline">${b1}</span> + ${a1}</div>
+    <div class="q-sub">(b) ${c1} 取去 <span class="fillline">${d1}</span> 是 ${c1-d1}</div>
+    <div class="q-sub">(c) <span class="fillline">${e1a}</span> - <span class="fillline">${e1b}</span> = ${e1a>e1b?e1a-e1b:e1b-e1a}</div>
+    <div class="q-sub">(d) ${f1a} + ${f1b} = <span class="fillline">${f1a+f1b}</span></div></div>`;
+  push(`(a)${a1} (b)${d1} (c)例:${e1a}-${e1b} (d)${f1a+f1b}`);
+
+  // 2) sequences
+  const s2step = [1,2,-1,-2][randInt(0,3)];
+  const s2start = randInt(20,80);
+  const s2vals = [0,1,2,3].map(i=>s2start+s2step*i);
+  const s2blank = randInt(1,2);
+  const s2disp = s2vals.map((v,i)=> i===s2blank? `<span class="fillline">${v}</span>` : v).join('，');
+  const s3start = randInt(90,99);
+  const s3step = -randInt(1,2);
+  const s3vals = [0,1,2,3].map(i=>s3start+s3step*i);
+  const s3blank = randInt(1,2);
+  const s3disp = s3vals.map((v,i)=> i===s3blank? `<span class="fillline">${v}</span>` : v).join('，');
+  const q2 = `<div class="q">2. 依規律，填一填。 <span style="font-size:12px;color:#666;">4%@2%</span>
+    <div class="q-sub">(a) ${s2disp}</div>
+    <div class="q-sub">(b) ${s3disp}</div></div>`;
+  push(`(a)${s2vals[s2blank]} (b)${s3vals[s3blank]}`);
+
+  // 3) comparisons
+  const cmpA = randInt(1,3), cmpB = randInt(1,3);
+  const cmpBig = cmpA*10 > cmpB ? '大' : '小'; // "2十 比 1十" style approximated as tens compare
+  const compL = randInt(20,60), compR = randInt(20,60);
+  const compSym = compL>compR?'>':compL<compR?'<':'=';
+  const q3 = `<div class="q">3. 圈一圈。 <span style="font-size:12px;color:#666;">4%@2%</span>
+    <div class="q-sub">(a) ${cmpA}十 比 ${cmpB}個 <span class="choice"><span class="${cmpBig==='大'?'correct':''}">大</span><span class="${cmpBig==='小'?'correct':''}">小</span></span></div>
+    <div class="q-sub">(b) ${compL} + 0 <span class="choice"><span class="${compSym==='>'?'correct':''}">&gt;</span><span class="${compSym==='<'?'correct':''}">&lt;</span></span> ${compR}</div></div>`;
+  push(`(a)${cmpBig} (b)${compSym}`);
+
+  // 4) abacus reading
+  const tens4 = randInt(2,7), ones4 = randInt(1,9);
+  const total4 = tens4*10+ones4;
+  const numToChinese = (num) => { const d=['零','一','二','三','四','五','六','七','八','九']; if(num<10) return d[num]; const t=Math.floor(num/10),o=num%10; return (t>1?d[t]:'')+'十'+(o?d[o]:''); };
+  const q4 = `<div class="q">4. 看右面的算柱。 <span style="font-size:12px;color:#666;">4%@2%</span>
+    <div class="abacus">
+      <div class="abacus-col">${Array.from({length:tens4}).map(()=>'<span class="bead"></span>').join('')}<div class="abacus-label">十位</div></div>
+      <div class="abacus-col">${Array.from({length:ones4}).map(()=>'<span class="bead"></span>').join('')}<div class="abacus-label">個位</div></div>
+    </div>
+    <div class="q-sub">(a) 算柱表示的數是<span class="fillline">${total4}</span>，讀作<span class="fillline">${numToChinese(total4)}</span>。</div>
+    <div class="q-sub">(b) 個位數字是<span class="fillline">${ones4}</span>，表示<span class="fillline">${ones4}</span>粒。</div></div>`;
+  push(`(a)${total4},${numToChinese(total4)} (b)${ones4}`);
+
+  // 5) heart substitution MCQ
+  const hA = randInt(2,9), hSum = randInt(hA+1,18);
+  const heartVal = hSum-hA;
+  const hAns = hSum-hA;
+  const hOpts = shuffle([hAns, hAns+randInt(1,3), Math.max(0,hAns-randInt(1,2)), hSum]);
+  const hCorrect = hOpts.indexOf(hAns);
+  const q5 = `<div class="q">5. 如果 ${hA} + ${hA} = ♥，那麼 ♥ - ${hA} = ?
+    <div class="mcq-opts">${hOpts.map((o,i)=>`<div class="opt${i===hCorrect?' correct':''}"><span class="radio"></span>${String.fromCharCode(65+i)}. ${o}</div>`).join('')}</div></div>`;
+  push(`${String.fromCharCode(65+hCorrect)}. ${hAns}`);
+
+  const page1 = q1+q2+q3+q4+q5;
+
+  // 6) three digit cards -> smallest 2-digit / largest 2-digit odd
+  const cardPool = new Set([randInt(1,9)]);
+  while(cardPool.size < 3) cardPool.add(randInt(0,9));
+  const cardDigits = shuffle([...cardPool]);
+  // brute-force every ordered pair of the 3 cards (first digit can't be 0) for smallest/largest 2-digit combos
+  function twoDigitCombos(digs){
+    const combos=[];
+    for(let i=0;i<digs.length;i++) for(let j=0;j<digs.length;j++) if(i!==j && digs[i]!==0) combos.push(digs[i]*10+digs[j]);
+    return combos;
+  }
+  const combos = twoDigitCombos(cardDigits);
+  const minCombo = Math.min(...combos);
+  const oddCombos = combos.filter(v=>v%2===1);
+  const maxOddCombo = oddCombos.length? Math.max(...oddCombos) : null;
+  const q6 = `<div class="q">6. 利用以下3張數卡。 <span style="font-size:12px;color:#666;">4%@2%</span>
+    <div class="card3">${cardDigits.map(d=>`<span class="digitcard">${d}</span>`).join('')}</div>
+    <div class="q-sub">(a) 組成一個最小的兩位數：<span class="fillline">${minCombo}</span></div>
+    <div class="q-sub">(b) 組成一個最大的兩位單數：<span class="fillline">${maxOddCombo===null?'—':maxOddCombo}</span></div></div>`;
+  push(`(a)${minCombo} (b)${maxOddCombo===null?'無':maxOddCombo}`);
+
+  // 7) sort odds ascending
+  const oddPool = new Set();
+  while(oddPool.size < 4) oddPool.add(randInt(1,49)*2+1);
+  const odds = shuffle([...oddPool]);
+  const oddsSorted = [...odds].sort((a,b)=>a-b);
+  const q7 = `<div class="q">7. 把下面的單數由小至大排列，填在橫線上。
+    <div class="card3">${odds.map(d=>`<span class="digitcard" style="width:44px;">${d}</span>`).join('')}</div>
+    答案：<span class="fillline">${oddsSorted[0]}</span> &lt; <span class="fillline">${oddsSorted[1]}</span> &lt; <span class="fillline">${oddsSorted[2]}</span> &lt; <span class="fillline">${oddsSorted[3]}</span>（最小 → 最大）</div>`;
+  push(oddsSorted.join(' < '));
+
+  // 8) largest odd within N
+  const limit8 = [30,40,50,60][randInt(0,3)];
+  const q8 = `<div class="q">8. ${limit8} 以內最大的兩位單數是<span class="fillline">${limit8-1}</span>。</div>`;
+  push(`${limit8-1}`);
+
+  // 9-13 word problems
+  const boxes9 = randInt(3,7), extra9 = randInt(1,9);
+  const q9 = `<div class="q">9. 一盒糖果有10粒，現有${boxes9}盒多${extra9}粒，共有<span class="fillline">${boxes9*10+extra9}</span>粒。</div>`;
+  push(`${boxes9*10+extra9}`);
+
+  const v10a = randInt(10,25), v10b = randInt(10,25);
+  const cmp10 = v10a>v10b?'多':'少';
+  const q10 = `<div class="q">10. 心心有郵票${v10a}張，妹妹有郵票${v10b}張，心心比妹妹（<span class="choice"><span class="${cmp10==='多'?'correct':''}">多</span> / <span class="${cmp10==='少'?'correct':''}">少</span></span>）<span class="fillline">${Math.abs(v10a-v10b)}</span>張。</div>`;
+  push(`${cmp10} ${Math.abs(v10a-v10b)}`);
+
+  const v11 = randInt(3,9);
+  const q11 = `<div class="q">11. 小美和妹妹各有星星${v11}粒，她們共有星星<span class="fillline">${v11*2}</span>粒。</div>`;
+  push(`${v11*2}`);
+
+  const v12a = randInt(15,35), v12b = randInt(15,35);
+  const q12 = `<div class="q">12. 小善有棒棒糖${v12a}枝，小真有${v12b}枝，他們共有<span class="fillline">${v12a+v12b}</span>枝。</div>`;
+  push(`${v12a+v12b}`);
+
+  const total13 = randInt(12,20), box13a = randInt(4,total13-4);
+  const q13 = `<div class="q">13. 把${total13}件玩具放在兩個盒中，一個盒有${box13a}件，另一個盒有<span class="fillline">${total13-box13a}</span>件。</div>`;
+  push(`${total13-box13a}`);
+
+  const page2 = q6+q7+q8+q9+q10+q11+q12+q13;
+
+  // 14 queue position
+  const queueTotal14 = randInt(6,10), pos14 = randInt(2,queueTotal14-1);
+  const leaveFront = randInt(1,pos14-1);
+  const q14 = `<div class="q">14. 小朋友們正在排隊玩遊戲，共 ${queueTotal14} 人排隊。
+    <div class="q-sub">(a) 小光排第 ${pos14} 位，小誠排第<span class="fillline">${pos14+1}</span>位。</div>
+    <div class="q-sub">(b) 過了一會，前面走了 ${leaveFront} 人，小誠現在排第<span class="fillline">${pos14+1-leaveFront}</span>位。</div></div>`;
+  push(`(a)${pos14+1} (b)${pos14+1-leaveFront}`);
+
+  // 15 clock MCQ
+  const hour15 = randInt(1,11);
+  const q15 = `<div class="q">15. 現在的時間是 ${hour15} 時半，時針應指在哪兩個數字之間？
+    <div class="mcq-opts">
+      <div class="opt"><span class="radio"></span>A. ${hour15-1||12} 和 ${hour15}</div>
+      <div class="opt correct"><span class="radio"></span>B. ${hour15} 和 ${hour15+1>12?1:hour15+1}</div>
+      <div class="opt"><span class="radio"></span>C. ${hour15+2>12?hour15+2-12:hour15+2} 和 ${hour15+3>12?hour15+3-12:hour15+3}</div>
+      <div class="opt"><span class="radio"></span>D. ${hour15+5>12?hour15+5-12:hour15+5} 和 ${hour15+6>12?hour15+6-12:hour15+6}</div>
+    </div></div>`;
+  push(`B. ${hour15} 和 ${hour15+1>12?1:hour15+1}`);
+
+  // 16 duration MCQ
+  const bro16 = randInt(2,4);
+  const opts16 = [bro16-1, bro16, bro16+1, bro16+2].filter(v=>v>0 && v!==bro16);
+  const q16 = `<div class="q">16. 哥哥看書用了 ${bro16} 小時，妹妹看書的時間比哥哥短。
+    <div class="q-sub">妹妹所用的時間可能是（<span class="choice">${opts16.map(o=>`<span class="${o<bro16?'correct':''}">${o}</span>`).join(' / ')}</span>）小時。（圈出答案）</div></div>`;
+  push(`${opts16.filter(o=>o<bro16).join(' 或 ')}`);
+
+  // 17 clock addition MCQ
+  const start17 = randInt(4,8), dur17 = randInt(1,3);
+  const end17 = start17+dur17>12?start17+dur17-12:start17+dur17;
+  const q17 = `<div class="q">17. 姐姐開始溫習的時間是 ${start17} 時正，她溫習了 ${dur17} 小時，她在甚麼時間完成溫習？
+    <div class="mcq-opts">
+      <div class="opt correct"><span class="radio"></span>A. ${end17} 時正</div>
+      <div class="opt"><span class="radio"></span>B. ${end17+1>12?end17+1-12:end17+1} 時正</div>
+      <div class="opt"><span class="radio"></span>C. ${start17} 時正</div>
+      <div class="opt"><span class="radio"></span>D. ${end17+2>12?end17+2-12:end17+2} 時正</div>
+    </div></div>`;
+  push(`A. ${end17} 時正`);
+
+  const q18 = `<div class="q">18. 每年的最後一天是 <span class="fillline">12</span> 月 <span class="fillline">31</span> 日。</div>`;
+  push(`12月31日`);
+
+  const wd19 = randInt(0,6);
+  const q19 = `<div class="q">19. 如果昨天是星期${WD[wd19]}，明天是星期<span class="fillline">${WD[(wd19+2)%7]}</span>。</div>`;
+  push(`星期${WD[(wd19+2)%7]}`);
+
+  const q20 = `<div class="q">20. 一個尖頂、底面是圓形的立體，是（<span class="choice"><span>角柱</span> / <span>角錐</span> / <span>圓柱</span> / <span class="correct">圓錐</span></span>）。（圈出答案）</div>`;
+  push('圓錐');
+
+  const page3 = q14+q15+q16+q17+q18+q19+q20;
+
+  // 21-25 shapes
+  const q21 = `<div class="q">21. 以下哪一件物件最適合用來繪畫直線？
+    <div class="mcq-opts">
+      <div class="opt"><span class="radio"></span>A. 皮球</div>
+      <div class="opt"><span class="radio"></span>B. 水杯</div>
+      <div class="opt correct"><span class="radio"></span>C. 直尺</div>
+      <div class="opt"><span class="radio"></span>D. 牙刷</div>
+    </div></div>`;
+  push('C. 直尺');
+
+  const q22 = `<div class="q">22. 以下哪一組立體圖形不能疊穩？
+    <div class="mcq-opts">
+      <div class="opt correct"><span class="radio"></span>A. 球體</div>
+      <div class="opt"><span class="radio"></span>B. 正方體</div>
+      <div class="opt"><span class="radio"></span>C. 三棱柱</div>
+      <div class="opt"><span class="radio"></span>D. 圓柱體</div>
+    </div></div>`;
+  push('A. 球體');
+
+  const straight23 = randInt(3,6), curve23 = randInt(1,3);
+  const q23 = `<div class="q">23. 一個由 ${straight23} 條直線和 ${curve23} 條曲線組成的圖形，共有<span class="fillline">${straight23+curve23}</span>條線。
+    <div class="q-sub">上圖是由<span class="fillline">${straight23}</span>條直線和<span class="fillline">${curve23}</span>條曲線所組成。</div></div>`;
+  push(`直線${straight23}, 曲線${curve23}`);
+
+  const q24 = `<div class="q">24. 把圖案分類：A.梯形 B.五邊形 C.波浪形 D.圓形缺角 E.月牙形
+    <div class="q-sub">(a) 四邊形：<span class="fillline">A</span></div>
+    <div class="q-sub">(b) 只由直線組成的圖案：<span class="fillline">A, B</span></div>
+    <div class="q-sub">(c) 由直線和曲線組成的圖案：<span class="fillline">（視乎圖案）</span></div></div>`;
+  push('(a)A (b)A,B (c)視乎圖案');
+
+  const q25 = `<div class="q">25. 右圖是由（<span class="choice"><span class="correct">三角形</span> / <span>圓形</span> / <span>五邊形</span> / <span>六邊形</span></span>）所組成。（圈出所有答案）</div>`;
+  push('三角形');
+
+  const page4 = q21+q22+q23+q24+q25;
+
+  // page 5: 乙 情境題 -- calendar
+  const year5 = 2026, month5 = randInt(1,12);
+  const dim5 = daysInMonth(year5, month5);
+  const craftWD = randInt(0,6);
+  let craftDates = [];
+  for(let d=1; d<=dim5; d++) if(dayOfWeek(year5,month5,d)===craftWD) craftDates.push(d);
+  const craftDate = craftDates[randInt(0,craftDates.length-1)];
+
+  const footballStart = randInt(1, Math.min(10,dim5));
+  const footballWD = dayOfWeek(year5,month5,footballStart);
+  let footballCount = 0;
+  for(let d=footballStart; d<=dim5; d++) if(dayOfWeek(year5,month5,d)===footballWD) footballCount++;
+
+  const eventStart = randInt(1, Math.max(1,dim5-3));
+  const eventLen = randInt(2,4);
+  const eventEnd = Math.min(eventStart+eventLen-1, dim5);
+
+  let calRows = '';
+  let cells = Array(dayOfWeek(year5,month5,1)).fill('');
+  for(let d=1; d<=dim5; d++){
+    let mark = '';
+    if(d===craftDate) mark = ' 🎨';
+    if(d===footballStart) mark = ' ⚽';
+    cells.push(`${d}${mark}`);
+  }
+  while(cells.length % 7 !== 0) cells.push('');
+  for(let i=0; i<cells.length; i+=7){
+    calRows += `<tr>${cells.slice(i,i+7).map(c=>`<td>${c}</td>`).join('')}</tr>`;
+  }
+  const calendarHtml = `
+    <table class="calendar">
+      <tr><th colspan="7">${month5}月 ${year5}</th></tr>
+      <tr>${WD.map(w=>`<th>星期${w}</th>`).join('')}</tr>
+      ${calRows}
+    </table>`;
+
+  const p5q1 = `<div class="q">1. 看月曆完成下列各題。 <span style="font-size:12px;color:#666;">6%@2%</span>
+    ${calendarHtml}
+    <div class="q-sub">(a) 小光在<span class="fillline">${year5}</span>年<span class="fillline">${month5}</span>月<span class="fillline">${craftDate}</span>日上手工班（🎨）。</div>
+    <div class="q-sub">(b) 小培參加了足球班，足球班在${month5}月${footballStart}日開始，逢星期${WD[footballWD]}上課。在${month5}月他共有<span class="fillline">${footballCount}</span>堂足球班。</div>
+    <div class="q-sub">(c) 音樂交流團在${month5}月${eventStart}日開始，一連${eventLen}天，音樂交流團的最後一天是<span class="fillline">${month5}</span>月<span class="fillline">${eventEnd}</span>日。</div></div>`;
+
+  // Each "house" is drawn as two SEPARATE shapes (a rect body + a triangle
+  // roof) rather than one merged polygon, so the count the child is asked
+  // for actually matches what's on the page -- houseCount houses always
+  // means exactly houseCount quadrilaterals and houseCount triangles.
+  const houseCount = randInt(2,4);
+  let houses = '';
+  for(let i=0;i<houseCount;i++){
+    const x = 15 + i*45;
+    houses += `<rect x="${x}" y="50" width="35" height="35" fill="none" stroke="#333" stroke-width="1.5"/>
+      <polygon points="${x-2.5},50 ${x+37.5},50 ${x+17.5},25" fill="none" stroke="#333" stroke-width="1.5"/>`;
+  }
+  const p5q2 = `<div class="q">2. 右圖是小光設計的平面圖形。 <span style="font-size:12px;color:#666;">2%</span>
+    <div class="shapes-row"><svg width="${20+houseCount*45}" height="90" viewBox="0 0 ${20+houseCount*45} 90">${houses}</svg></div>
+    <div class="q-sub">小光的設計圖用了<span class="fillline">${houseCount}</span>個四邊形和<span class="fillline">${houseCount}</span>個三角形。</div></div>`;
+  push(`四邊形${houseCount}, 三角形${houseCount}`);
+  push(`月曆: 手工${craftDate}日, 足球${footballCount}堂, 交流團尾日${eventEnd}日`);
+
+  const page5 = p5q1+p5q2;
+
+  return { page1, page2, page3, page4, page5 };
+}
+
+function renderPlan(worksheetId){
+  const answers = [];
+  const { page1, page2, page3, page4, page5 } = buildPlan(answers);
+  document.getElementById('sheet').innerHTML = `
+    <div class="sheet-header"><div class="sheet-brand">Little Steps ♥</div><div class="page-tag">第一頁</div></div>
+    <div class="paper-title">數學科練習卷 — 甲部</div>
+    ${page1}
+    <div class="page-break"></div>
+    <div class="sheet-header"><div class="sheet-brand">Little Steps ♥</div><div class="page-tag">第二頁</div></div>
+    ${page2}
+    <div class="page-break"></div>
+    <div class="sheet-header"><div class="sheet-brand">Little Steps ♥</div><div class="page-tag">第三頁</div></div>
+    ${page3}
+    <div class="page-break"></div>
+    <div class="sheet-header"><div class="sheet-brand">Little Steps ♥</div><div class="page-tag">第四頁</div></div>
+    ${page4}
+    <div class="page-break"></div>
+    <div class="sheet-header"><div class="sheet-brand">Little Steps ♥</div><div class="page-tag">第五頁</div></div>
+    <div class="paper-title">乙部：情境題</div>
+    ${page5}
+    <div class="footnote">Print this page, have your child complete it on paper, then tap "查看答案" to check their work.
+      <div class="paper-credit">Little Steps ♥ · hk-maths.violin-kwai.workers.dev · WORKSHEET ${worksheetId}</div>
+    </div>
+  `;
+  try {
+    localStorage.setItem('hk_maths_answer_key', JSON.stringify({ worksheetId, answers, savedAt: Date.now() }));
+    const bankKey = 'hk_maths_worksheet_bank';
+    const bank = JSON.parse(localStorage.getItem(bankKey) || '[]');
+    bank.unshift({ worksheetId, answers, savedAt: Date.now() });
+    localStorage.setItem(bankKey, JSON.stringify(bank.slice(0, 15)));
+  } catch (e) {}
+}
+
+function newPlan(){
+  renderPlan(randId(6));
+  document.getElementById('answerBtn').textContent = '查看答案';
+}
+document.getElementById('genBtn').onclick = newPlan;
+document.getElementById('printBtn').onclick = () => window.print();
+document.getElementById('answerBtn').onclick = () => {
+  const sheet = document.getElementById('sheet');
+  const btn = document.getElementById('answerBtn');
+  const showing = sheet.classList.toggle('show-answers');
+  btn.textContent = showing ? '隱藏答案' : '查看答案';
+};
+newPlan();
+</script>
+</body>
+</html>
