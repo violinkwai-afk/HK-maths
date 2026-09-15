@@ -174,6 +174,8 @@ function queueSVG(total, posA, posB){
 }
 
 const ICON = {
+  手工: `<svg width="16" height="16" viewBox="0 0 30 30" style="vertical-align:middle"><path d="M15,3 A12,12 0 1 0 25,22 Q20,22 20,18 Q20,15 24,15 A12,12 0 0 0 15,3 Z" fill="#fdedc7" stroke="#333" stroke-width="1.6"/><circle cx="10" cy="10" r="1.8" fill="#f28ba0"/><circle cx="17" cy="8" r="1.8" fill="#f6c453"/><circle cx="9" cy="17" r="1.8" fill="#c8956a"/></svg>`,
+  足球: `<svg width="14" height="14" viewBox="0 0 26 26" style="vertical-align:middle"><circle cx="13" cy="13" r="11" fill="#fff" stroke="#333" stroke-width="1.6"/><polygon points="13,7 17,10 15.5,15 10.5,15 9,10" fill="#333"/></svg>`,
   球體: `<svg width="46" height="46" viewBox="0 0 54 54"><circle cx="27" cy="27" r="19" fill="none" stroke="#333" stroke-width="2"/><ellipse cx="27" cy="27" rx="19" ry="6" fill="none" stroke="#333" stroke-width="1.2" opacity=".6"/></svg>`,
   正方體: `<svg width="46" height="46" viewBox="0 0 54 54"><polygon points="10,20 27,30 27,48 10,38" fill="none" stroke="#333" stroke-width="2"/><polygon points="44,20 27,30 27,48 44,38" fill="none" stroke="#333" stroke-width="2"/><polygon points="10,20 27,10 44,20 27,30" fill="none" stroke="#333" stroke-width="2"/></svg>`,
   三棱柱: `<svg width="46" height="46" viewBox="0 0 54 54"><polygon points="14,40 27,16 40,40" fill="none" stroke="#333" stroke-width="2"/><polygon points="14,40 22,46 48,46 40,40" fill="none" stroke="#333" stroke-width="2"/><line x1="27" y1="16" x2="35" y2="22" stroke="#333" stroke-width="2"/><line x1="48" y1="46" x2="35" y2="22" stroke="#333" stroke-width="2"/></svg>`,
@@ -439,8 +441,8 @@ function buildPlan(answers){
   let cells = Array(dayOfWeek(year5,month5,1)).fill('');
   for(let d=1; d<=dim5; d++){
     let mark = '';
-    if(d===craftDate) mark = ' 🎨';
-    if(d===footballStart) mark = ' ⚽';
+    if(d===craftDate) mark = ' '+ICON.手工;
+    if(d===footballStart) mark = ' '+ICON.足球;
     cells.push(`${d}${mark}`);
   }
   while(cells.length % 7 !== 0) cells.push('');
@@ -456,7 +458,7 @@ function buildPlan(answers){
 
   const p5q1 = `<div class="q">1. 看月曆完成下列各題。 <span style="font-size:12px;color:#666;">6%@2%</span>
     ${calendarHtml}
-    <div class="q-sub">(a) 小光在<span class="fillline">${year5}</span>年<span class="fillline">${month5}</span>月<span class="fillline">${craftDate}</span>日上手工班（🎨）。</div>
+    <div class="q-sub">(a) 小光在<span class="fillline">${year5}</span>年<span class="fillline">${month5}</span>月<span class="fillline">${craftDate}</span>日上手工班（${ICON.手工}）。</div>
     <div class="q-sub">(b) 小培參加了足球班，足球班在${month5}月${footballStart}日開始，逢星期${WD[footballWD]}上課。在${month5}月他共有<span class="fillline">${footballCount}</span>堂足球班。</div>
     <div class="q-sub">(c) 音樂交流團在${month5}月${eventStart}日開始，一連${eventLen}天，音樂交流團的最後一天是<span class="fillline">${month5}</span>月<span class="fillline">${eventEnd}</span>日。</div></div>`;
 

@@ -75,7 +75,7 @@
   .sheet.show-answers .opt.correct .radio{background:var(--border);}
 
   .pic-item{border:1px solid var(--border); padding:12px; margin-bottom:12px;}
-  .pic-row{font-size:22px; letter-spacing:2px; margin-bottom:8px; line-height:1.3;}
+  .pic-row{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:8px; line-height:1.3;}
   .pic-eq{display:flex; align-items:center; gap:8px; margin-top:8px;}
   .eqbox{width:46px; height:32px; border:1.3px solid var(--border); display:flex; align-items:center; justify-content:center; font-weight:700; color:transparent;}
   .sheet.show-answers .eqbox{color:var(--pink-ink);}
@@ -131,6 +131,16 @@ function randId(n){
   return s;
 }
 function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+// Hand-drawn icons replacing emoji -- prints cleanly in black & white.
+const ICONA = {
+  iceCream: `<svg width="20" height="30" viewBox="0 0 30 44" style="vertical-align:middle"><circle cx="15" cy="12" r="11" fill="#fdedc7" stroke="#333" stroke-width="1.8"/><path d="M6,16 L15,42 L24,16 Z" fill="none" stroke="#333" stroke-width="1.8" stroke-linejoin="round"/></svg>`,
+  coffee: `<svg width="24" height="24" viewBox="0 0 40 40" style="vertical-align:middle"><path d="M8,14 L10,32 Q20,38 30,32 L32,14 Z" fill="#c8956a" stroke="#333" stroke-width="1.8"/><path d="M32,17 Q40,17 38,25 Q36,31 30,29" fill="none" stroke="#333" stroke-width="1.8"/><line x1="8" y1="14" x2="32" y2="14" stroke="#333" stroke-width="1.8"/></svg>`,
+  bubbleTea: `<svg width="20" height="26" viewBox="0 0 34 44" style="vertical-align:middle"><path d="M8,10 L10,38 Q17,42 24,38 L26,10 Z" fill="#f28ba0" stroke="#333" stroke-width="1.8"/><rect x="6" y="6" width="22" height="6" rx="1.5" fill="#fdedc7" stroke="#333" stroke-width="1.6"/><line x1="20" y1="0" x2="17" y2="10" stroke="#333" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="33" r="1.6" fill="#333"/><circle cx="17" cy="36" r="1.6" fill="#333"/><circle cx="21" cy="32" r="1.6" fill="#333"/></svg>`,
+  crab: `<svg width="26" height="20" viewBox="0 0 44 34" style="vertical-align:middle"><ellipse cx="22" cy="18" rx="14" ry="10" fill="#f28ba0" stroke="#333" stroke-width="1.6"/><path d="M8,12 L2,4 M36,12 L42,4" stroke="#333" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="2" cy="4" r="3" fill="none" stroke="#333" stroke-width="1.6"/><circle cx="42" cy="4" r="3" fill="none" stroke="#333" stroke-width="1.6"/><path d="M10,26 L4,32 M16,28 L12,34 M28,28 L32,34 M34,26 L40,32" stroke="#333" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="17" cy="16" r="1.6" fill="#333"/><circle cx="27" cy="16" r="1.6" fill="#333"/></svg>`,
+  shrimp: `<svg width="28" height="18" viewBox="0 0 46 30" style="vertical-align:middle"><path d="M6,20 Q6,6 20,4 Q34,2 40,10 Q30,10 28,16 Q26,22 34,24 Q20,28 10,24 Q4,22 6,20 Z" fill="#f6c453" stroke="#333" stroke-width="1.6" stroke-linejoin="round"/><circle cx="10" cy="14" r="1.5" fill="#333"/></svg>`,
+  fishA: `<svg width="26" height="20" viewBox="0 0 40 30" style="vertical-align:middle"><path d="M4,15 Q14,2 30,10 L38,4 L34,15 L38,26 L30,20 Q14,28 4,15 Z" fill="#f28ba0" stroke="#333" stroke-width="1.6" stroke-linejoin="round"/><circle cx="14" cy="12" r="1.8" fill="#333"/></svg>`,
+  fishB: `<svg width="26" height="20" viewBox="0 0 40 30" style="vertical-align:middle"><path d="M4,15 Q14,2 30,10 L38,4 L34,15 L38,26 L30,20 Q14,28 4,15 Z" fill="#f6c453" stroke="#333" stroke-width="1.6" stroke-linejoin="round"/><circle cx="14" cy="12" r="1.8" fill="#333"/></svg>`,
+};
 function numToChinese(n){
   const d = ['零','一','二','三','四','五','六','七','八','九'];
   if(n===0) return '零';
@@ -247,7 +257,7 @@ function buildAssessment(){
 
   // (五) picture counting -> number sentence
   const iconSets = [
-    {icon:'🍦', name:'雪糕'}, {icon:'☕', name:'飲品'}, {icon:'🦀', name:'蟹'}, {icon:'🐟', name:'魚'},
+    {icon:ICONA.iceCream, name:'雪糕'}, {icon:ICONA.coffee, name:'飲品'}, {icon:ICONA.crab, name:'蟹'}, {icon:ICONA.fishA, name:'魚'},
   ];
   function picItem(kind){
     if(kind==='sub'){
@@ -264,8 +274,8 @@ function buildAssessment(){
     }
     if(kind==='add'){
       const a = randInt(2,6), b = randInt(2,6);
-      const html = `<div class="pic-item">${n})<div class="pic-row">${'☕'.repeat(a)} ${'🧋'.repeat(b)}</div>
-        ☕ 和 🧋 共有飲品<span class="fillline">${a+b}</span>杯。
+      const html = `<div class="pic-item">${n})<div class="pic-row">${ICONA.coffee.repeat(a)}${ICONA.bubbleTea.repeat(b)}</div>
+        飲品共有<span class="fillline">${a+b}</span>杯。
         <div class="pic-eq"><span class="eqbox">${a}</span><span class="eqcircle">+</span><span class="eqbox">${b}</span>=<span class="eqbox">${a+b}</span></div>
       </div>`;
       answers.push(`${n}) ${a+b}`);
@@ -274,8 +284,8 @@ function buildAssessment(){
     }
     if(kind==='diff'){
       const a = randInt(6,10), b = randInt(2,a-1);
-      const html = `<div class="pic-item">${n})<div class="pic-row">${'🦀'.repeat(a)}<br>${'🦐'.repeat(b)}</div>
-        🦀 比 🦐 多<span class="fillline">${a-b}</span>隻。
+      const html = `<div class="pic-item">${n})<div class="pic-row">${ICONA.crab.repeat(a)}</div><div class="pic-row">${ICONA.shrimp.repeat(b)}</div>
+        蟹比蝦多<span class="fillline">${a-b}</span>隻。
         <div class="pic-eq"><span class="eqbox">${a}</span><span class="eqcircle">-</span><span class="eqbox">${b}</span>=<span class="eqbox">${a-b}</span></div>
       </div>`;
       answers.push(`${n}) ${a-b}`);
@@ -283,9 +293,9 @@ function buildAssessment(){
       return html;
     }
     const total = randInt(7,9), part = randInt(3,total-2), rest = total-part;
-    const html = `<div class="pic-item">${n})${total} 條魚中，🐟有 ${part} 條，其餘的是 🐠。
-      <div class="pic-row">${'🐟'.repeat(part)}${'🐠'.repeat(rest)}</div>
-      🐠有<span class="fillline">${rest}</span>條。
+    const html = `<div class="pic-item">${n})${total} 條魚中，粉紅色魚有 ${part} 條，其餘的是黃色魚。
+      <div class="pic-row">${ICONA.fishA.repeat(part)}${ICONA.fishB.repeat(rest)}</div>
+      黃色魚有<span class="fillline">${rest}</span>條。
       <div class="pic-eq"><span class="eqbox">${total}</span><span class="eqcircle">-</span><span class="eqbox">${part}</span>=<span class="eqbox">${rest}</span></div>
     </div>`;
     answers.push(`${n}) ${rest}`);
