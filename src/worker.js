@@ -78,8 +78,11 @@ ${answerKey}
 }`;
 
   let parsed;
+  const usage = { sonnet: null, opus: null };
   try {
-    parsed = await callClaude("claude-sonnet-5", 2048, images, prompt, apiKey);
+    const r = await callClaude("claude-sonnet-5", 2048, images, prompt, apiKey);
+    parsed = r.parsed;
+    usage.sonnet = r.usage;
   } catch (e) {
     return json({ error: e.kind || "upstream_error", message: e.uiMessage, detail: e.detail }, e.status || 502);
   }
@@ -104,7 +107,9 @@ ${answerKey}
 {"results":[{"question":"題號","studentAnswer":"學生答案","correct":true/false/null,"note":""}]}`;
 
     try {
-      const recheck = await callClaude("claude-opus-5", 1024, images, recheckPrompt, apiKey);
+      const rc = await callClaude("claude-opus-5", 1024, images, recheckPrompt, apiKey);
+      const recheck = rc.parsed;
+      usage.opus = rc.usage;
       const byQuestion = new Map((recheck.results || []).map((r) => [String(r.question), r]));
       parsed.results = (parsed.results || []).map((r) => {
         const updated = byQuestion.get(String(r.question));
@@ -119,6 +124,12 @@ ${answerKey}
     const correctCount = graded.filter((r) => r.correct === true).length;
     parsed.score = `${correctCount} / ${graded.length}`;
   }
+
+  // Debug-only cost breakdown, not meant for the parent-facing UI -- lets us
+  // verify real per-submission cost against the earlier estimates. Rates are
+  // approximate; harmless to leave attached to the response since upload.html
+  // simply ignores unknown fields.
+  parsed._debugUsage = usage;
 
   return json(parsed, 200);
 }
@@ -162,7 +173,7 @@ async function callClaude(model, maxTokens, images, prompt, apiKey) {
   const text = (data.content || []).map((b) => b.text || "").join("");
   try {
     const match = text.match(/\{[\s\S]*\}/);
-    return JSON.parse(match ? match[0] : text);
+    return { parsed: JSON.parse(match ? match[0] : text), usage: data.usage || null };
   } catch (e) {
     throw { kind: "parse_error", uiMessage: "改卷結果解析失敗，請再試一次。", detail: text.slice(0, 500), status: 502 };
   }
