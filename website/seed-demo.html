@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>載入示範紀錄</title>
+</head>
+<body style="font-family:sans-serif; padding:24px; color:#3a2b2e;">
+  <p>載入緊，請稍等…</p>
+  <script>
+    const answers = [
+      "1. 60 - 50 = 10",
+      "2. 87 - 35 = 52",
+      "3. 12 + 25 = 37",
+      "4. 33 - 12 = 21",
+      "5. 49 - 47 = 2",
+      "6. 48 - 34 = 12 (top blank = 4, bottom blank = 4)",
+      "7. 48 - 38 = 16 (top blank = 4, bottom blank = 8)",
+      "8. Tom has 53 stickers. Tom buys 18 more stickers. How many stickers does Tom have now? = 71",
+    ];
+    const results = [
+      { question: "1", studentAnswer: "10", correct: true, note: "" },
+      { question: "2", studentAnswer: "20", correct: false, note: "" },
+      { question: "3", studentAnswer: "30", correct: false, note: "" },
+      { question: "4", studentAnswer: "", correct: false, note: "未作答" },
+      { question: "5", studentAnswer: "", correct: false, note: "未作答" },
+      { question: "6", studentAnswer: "上格1、下格4", correct: false, note: "上格應填4" },
+      { question: "7", studentAnswer: "上格1、下格8", correct: false, note: "上格應填4" },
+      { question: "8", studentAnswer: "一筆不明", correct: null, note: "字跡不清" },
+    ];
+    const graded = results.filter(r => r.correct !== null);
+    const score = `${graded.filter(r => r.correct === true).length} / ${graded.length}`;
+    const weakAreas = ["兩位數減法運算", "兩位數加法運算"];
+
+    try {
+      localStorage.setItem('hk_maths_answer_key', JSON.stringify({
+        worksheetId: 'DS1JUQ', answers, savedAt: Date.now(),
+      }));
+      const key = 'hk_maths_grading_history';
+      const history = JSON.parse(localStorage.getItem(key) || '[]');
+      history.unshift({ date: Date.now(), score, weakAreas, results });
+      localStorage.setItem(key, JSON.stringify(history.slice(0, 30)));
+      document.body.innerHTML = '<p>已載入，正在前往主頁…</p>';
+    } catch (e) {
+      document.body.innerHTML = '<p>載入失敗：' + e.message + '</p>';
+    }
+    setTimeout(() => location.href = 'index.html', 600);
+  </script>
+</body>
+</html>
