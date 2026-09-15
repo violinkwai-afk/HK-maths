@@ -13,6 +13,17 @@
 // `await env.ANTHROPIC_API_KEY.get()`. Using the binding object directly
 // (e.g. as a header value) silently stringifies to garbage and Anthropic
 // rejects it as an invalid key -- this bit us once already.
+//
+// /api/grade is a public, unauthenticated, real-money endpoint -- anyone who
+// finds this Worker's URL can call it directly (confirmed: this project was
+// tested all session via raw curl, bypassing upload.html's UI and its
+// client-side page/monthly caps entirely). The per-IP limit below, ported
+// from the sibling Lituk project's _worker.js feedback-endpoint pattern, is
+// the actual cost boundary; upload.html's caps are just a UX nicety on top.
+// Needs a RATE_LIMIT_KV binding (Workers & Pages -> this worker -> Bindings
+// -> Add binding -> KV namespace) -- fails open (skips the check) if it
+// isn't bound yet, matching the UK site's own defensive pattern.
+const GRADE_RATE_LIMIT = 15; // max /api/grade calls per IP per hour
 
 export default {
   async fetch(request, env, ctx) {
@@ -34,6 +45,25 @@ async function handleGrade(request, env) {
   const apiKey = typeof env.ANTHROPIC_API_KEY === "string"
     ? env.ANTHROPIC_API_KEY
     : await env.ANTHROPIC_API_KEY.get();
+
+  if (env.RATE_LIMIT_KV) {
+    const ip = request.headers.get("CF-Connecting-IP") || "unknown";
+    const rateKey = "graderate:" + ip;
+    let count = 0;
+    try {
+      const raw = await env.RATE_LIMIT_KV.get(rateKey);
+      count = raw ? (parseInt(raw, 10) || 0) : 0;
+    } catch (e) { /* KV unreachable -- don't block grading over it */ }
+    if (count >= GRADE_RATE_LIMIT) {
+      return json(
+        { error: "rate_limited", message: "短時間內請求太多，請一小時後再試。" },
+        429
+      );
+    }
+    try {
+      await env.RATE_LIMIT_KV.put(rateKey, String(count + 1), { expirationTtl: 3600 });
+    } catch (e) { /* best-effort -- a failed write here just means no throttling this time */ }
+  }
 
   let body;
   try {
@@ -127,11 +157,10 @@ ${answerKey}
     parsed.score = `${correctCount} / ${graded.length}`;
   }
 
-  // Debug-only cost breakdown, not meant for the parent-facing UI -- lets us
-  // verify real per-submission cost against the earlier estimates. Rates are
-  // approximate; harmless to leave attached to the response since upload.html
-  // simply ignores unknown fields.
-  parsed._debugUsage = usage;
+  // Basic cost observability (Cloudflare Worker Logs / `wrangler tail`) --
+  // not returned to the client. There was previously no way to see
+  // per-request token usage short of the Anthropic billing dashboard.
+  console.log(JSON.stringify({ event: "grade_usage", pages: images.length, usage }));
 
   return json(parsed, 200);
 }
