@@ -135,6 +135,7 @@
     const answerkeyBox = document.getElementById('answerkeyBox');
     const answerkeyInput = document.getElementById('answerkeyInput');
     const resultCard = document.getElementById('resultCard');
+    const MAX_PAGES = 5;
     let pageFiles = [];
     let hasAutoKey = false;
     let editingKey = false;
@@ -160,8 +161,13 @@
           <img src="${URL.createObjectURL(f)}" alt="">
         </div>
       `).join('');
-      captureLabel.textContent = `拍攝第 ${pageFiles.length + 1} 頁`;
-      countLabel.textContent = pageFiles.length ? `已拍攝 ${pageFiles.length} 頁` : '';
+      const atLimit = pageFiles.length >= MAX_PAGES;
+      captureBtn.style.display = atLimit ? 'none' : 'flex';
+      galleryLink.style.display = atLimit ? 'none' : 'block';
+      countLabel.textContent = pageFiles.length
+        ? `已拍攝 ${pageFiles.length} 頁${atLimit ? `（每次最多 ${MAX_PAGES} 頁）` : ''}`
+        : '';
+      if (!atLimit) captureLabel.textContent = `拍攝第 ${pageFiles.length + 1} 頁`;
       const hasPages = pageFiles.length > 0;
       const showEditableBox = hasPages && (!hasAutoKey || editingKey);
       answerkeyAuto.style.display = (hasPages && hasAutoKey && !editingKey) ? 'flex' : 'none';
@@ -182,12 +188,13 @@
     galleryLink.addEventListener('click', () => galleryInput.click());
 
     cameraInput.addEventListener('change', () => {
-      if (cameraInput.files[0]) pageFiles.push(cameraInput.files[0]);
+      if (cameraInput.files[0] && pageFiles.length < MAX_PAGES) pageFiles.push(cameraInput.files[0]);
       cameraInput.value = '';
       refreshUI();
     });
     galleryInput.addEventListener('change', () => {
-      pageFiles.push(...Array.from(galleryInput.files));
+      const room = MAX_PAGES - pageFiles.length;
+      pageFiles.push(...Array.from(galleryInput.files).slice(0, room));
       galleryInput.value = '';
       refreshUI();
     });

@@ -47,23 +47,34 @@ async function handleGrade(request, env) {
   if (!images || !images.length || !answerKey) {
     return json({ error: "bad_request", message: "缺少相片或答案key。" }, 400);
   }
+  const MAX_PAGES = 5;
+  if (images.length > MAX_PAGES) {
+    return json(
+      { error: "too_many_pages", message: `每次最多批改 ${MAX_PAGES} 頁，請分開幾次提交。` },
+      400
+    );
+  }
 
-  const prompt = `你是一位細心的小學數學老師，正在批改學生完成的練習卷相片。呢份卷可能影咗多張相（例如${images.length}頁），全部都係同一份卷嘅唔同版，請將佢哋當成一份完整嘅卷嚟改。
+  // Notes are kept intentionally terse (a few characters, correct answers get
+  // none at all) -- verbose per-question explanations were the single
+  // biggest driver of output-token cost on dense, many-page worksheets.
+  const prompt = `你是一位細心的小學數學老師，正在批改學生完成的練習卷相片（共${images.length}頁，屬於同一份卷）。
 
 以下是這份練習卷的正確答案（按題號排列）：
 ${answerKey}
 
-請仔細睇相片入面學生手寫嘅答案，逐題同上面嘅正確答案比對。
+請逐題比對相片中學生手寫的答案與上述正確答案。
 
 要求：
-1. 如果某一題嘅手寫字睇唔清楚或者有歧義，唔好亂估，喺個result度將 "correct" 設做 null，並喺 "note" 講明原因（例如「字跡唔清晰」）。
-2. 只回覆一個JSON物件，格式如下，唔好加任何其他文字：
+1. 手寫字跡不清晰或有歧義時，不要臆測，將 "correct" 設為 null，並在 "note" 簡短註明原因（例如「字跡不清」），四個字以內。
+2. "note" 只在答錯或不確定時填寫，答對的題目一律留空字串，不要重複題目內容或作出詳細解釋。
+3. 只回覆一個JSON物件，不要加任何其他文字：
 {
   "results": [
-    {"question": "題號", "studentAnswer": "睇到嘅學生答案文字", "correct": true/false/null, "note": "簡短說明（可留空）"}
+    {"question": "題號", "studentAnswer": "學生答案", "correct": true/false/null, "note": ""}
   ],
-  "score": "X / Y（Y係總題數，X係答啱嘅題數，唔清晰嘅題唔計入Y）",
-  "weakAreas": ["按錯誤歸納出嘅弱項，例如：加減混合運算次序、長除法"]
+  "score": "X / Y（Y為總題數，X為答對題數，不清晰的題目不計入Y）",
+  "weakAreas": ["按錯誤歸納的弱項，例如：加減混合運算次序、長除法"]
 }`;
 
   const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
