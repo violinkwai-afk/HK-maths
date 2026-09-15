@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flash Card — Little Steps</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;500;700&display=swap">
+<style>
+  :root{
+    --ink:#3a2b2e; --muted:#9c8288; --card:#ffffff;
+    --pink:#f28ba0; --pink-soft:#fbd9df; --pink-ink:#c23f5b;
+    --yellow:#f6c453; --yellow-soft:#fdedc7;
+    --shadow: 0 2px 10px rgba(58,43,46,0.06);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; color:var(--ink);
+    background:linear-gradient(180deg, #fcf2f3 0%, #fffbea 55%, #fffbea 100%);
+    background-attachment:fixed;
+    font-family:"Chiron GoRound TC","PingFang TC",-apple-system,BlinkMacSystemFont,sans-serif;
+  }
+  .page{max-width:430px; margin:0 auto; padding:20px 20px 40px;}
+  .back{display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.85rem; font-weight:700; margin-bottom:20px;}
+  h1{font-size:1.3rem; margin:0 0 4px; font-weight:800;}
+  .sub{font-size:.85rem; color:var(--muted); margin:0 0 20px; line-height:1.55;}
+
+  .picker{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;}
+  .picker button{
+    width:40px; height:40px; border-radius:12px; border:none; font-family:inherit;
+    font-weight:800; font-size:.95rem; background:var(--card); color:var(--ink);
+    box-shadow:var(--shadow); cursor:pointer;
+  }
+  .picker button.active{background:var(--pink); color:#ffffff;}
+
+  .card{
+    background:var(--card); border-radius:22px; padding:24px 20px; box-shadow:var(--shadow);
+    text-align:center; cursor:pointer; user-select:none;
+  }
+  .frame{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:0 auto 18px; max-width:300px;}
+  .frame .cell{
+    width:36px; height:36px; border-radius:8px; border:2px solid var(--pink-ink);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .frame .cell.a{background:var(--pink); border-color:var(--pink);}
+  .frame .cell.b{background:var(--yellow); border-color:var(--yellow);}
+
+  .equation{font-size:1.4rem; font-weight:800; font-variant-numeric:tabular-nums; min-height:2.2rem;}
+  .equation .hidden-part{color:var(--muted);}
+  .hint{font-size:.78rem; color:var(--muted); margin-top:10px;}
+
+  .nav{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
+  .nav button{
+    background:var(--card); border:none; border-radius:14px; padding:12px 20px;
+    font-family:inherit; font-weight:800; font-size:.85rem; color:var(--ink);
+    box-shadow:var(--shadow); cursor:pointer;
+  }
+  .nav .progress{font-size:.8rem; color:var(--muted); font-weight:700;}
+
+  @media (min-width: 760px){ .page{max-width:600px;} }
+</style>
+</head>
+<body>
+  <div class="page">
+    <a class="back" href="index.html">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 5l-7 7 7 7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      返回首頁
+    </a>
+    <h1>Flash Card</h1>
+    <p class="sub">數的分成與合成 —— 選一個數字，練習它可以拆成哪兩個數。</p>
+
+    <div class="picker" id="picker"></div>
+
+    <div class="card" id="card">
+      <div class="frame" id="frame"></div>
+      <div class="equation" id="equation"></div>
+      <div class="hint" id="hint">輕觸卡片，查看答案</div>
+    </div>
+
+    <div class="nav">
+      <button id="prevBtn">‹ 上一題</button>
+      <div class="progress" id="progress"></div>
+      <button id="nextBtn">下一題 ›</button>
+    </div>
+  </div>
+
+  <script>
+    const picker = document.getElementById('picker');
+    const frame = document.getElementById('frame');
+    const equation = document.getElementById('equation');
+    const hint = document.getElementById('hint');
+    const card = document.getElementById('card');
+    const progress = document.getElementById('progress');
+
+    let target = 10;
+    let splits = [];
+    let index = 0;
+    let revealed = false;
+
+    for (let n = 2; n <= 10; n++) {
+      const btn = document.createElement('button');
+      btn.textContent = n;
+      btn.dataset.n = n;
+      btn.addEventListener('click', () => selectTarget(n));
+      picker.appendChild(btn);
+    }
+
+    function buildSplits(n) {
+      const list = [];
+      for (let a = 1; a <= Math.floor(n / 2); a++) list.push([a, n - a]);
+      return list;
+    }
+
+    function selectTarget(n) {
+      target = n;
+      splits = buildSplits(n);
+      index = 0;
+      revealed = false;
+      Array.from(picker.children).forEach(b => b.classList.toggle('active', Number(b.dataset.n) === n));
+      render();
+    }
+
+    function render() {
+      const [a, b] = splits[index];
+      frame.innerHTML = Array.from({ length: target }, (_, i) =>
+        `<div class="cell ${i < a ? 'a' : 'b'}"></div>`
+      ).join('');
+      equation.innerHTML = revealed
+        ? `${target} = ${a} + ${b}`
+        : `${target} = <span class="hidden-part">? + ?</span>`;
+      hint.textContent = revealed ? '輕觸卡片，返回提問' : '輕觸卡片，查看答案';
+      progress.textContent = `${index + 1} / ${splits.length}`;
+    }
+
+    card.addEventListener('click', () => { revealed = !revealed; render(); });
+    document.getElementById('prevBtn').addEventListener('click', () => {
+      index = (index - 1 + splits.length) % splits.length;
+      revealed = false;
+      render();
+    });
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      index = (index + 1) % splits.length;
+      revealed = false;
+      render();
+    });
+
+    selectTarget(10);
+  </script>
+</body>
+</html>

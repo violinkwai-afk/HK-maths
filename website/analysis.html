@@ -165,7 +165,7 @@
               </div>
               <div class="history-score">${escapeHtml(h.score || '')}</div>
             </div>
-            <div class="history-detail" id="detail-${i}">${details || '<span style="color:var(--muted); font-size:.8rem;">沒有詳細紀錄</span>'}</div>
+            <div class="history-detail${i === 0 ? ' open' : ''}" id="detail-${i}">${details || '<span style="color:var(--muted); font-size:.8rem;">沒有詳細紀錄</span>'}</div>
           </div>
         `;
       }).join('');
