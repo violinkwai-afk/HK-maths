@@ -60,6 +60,18 @@ known correct-answer key (auto-accept confident/matching reads, surface
 only genuinely ambiguous ones for a quick human confirm — a light safety
 net, not a return to manual grading).
 
+**STATUS 2026-09-15 — implemented, but not via the per-field-cropping
+approach above.** The actual build (`src/worker.js` + `website/upload.html`)
+skips page-layout/anchor-marker cropping entirely and just sends the whole
+photo to Claude's vision API with the full answer key as text context; a
+hybrid pass re-checks any Sonnet flagged `correct:null` with Opus before
+falling back to a human-confirm UI (啱/錯 buttons in the result view) for
+whatever's still ambiguous after that. Same two hard constraints from above
+are honored (no rigid answer-format forced; human-confirm is a last resort,
+not the primary mechanism) — the cropping/anchor-marker idea just turned out
+to be unnecessary once vision-model grading proved good enough directly on
+full-page photos.
+
 **MVP kickoff 2026-09-11:** user wants a one-day, single-topic,
 single-worksheet prototype to test the full loop end-to-end (not all 6
 grades). They provided a real, blank reference test paper as a content/
@@ -137,6 +149,16 @@ has:
     number or email) so paying on the website unlocks the WhatsApp side
     automatically — same pattern as the UK site's Stripe
     `checkout.sessions.retrieve` verification, not yet built here.
+
+**STATUS 2026-09-15 — WhatsApp deferred, not dropped.** The entire build
+this session (Cloudflare Worker + `website/*.html`, generator/upload/
+grading/analysis/notes/flashcard) shipped as a standalone site with no
+WhatsApp integration at all — confirmed 2026-09-15 that this was just
+sequencing (prove the core generate→upload→grade→review loop works on the
+website first), not a decision to drop WhatsApp. The website is not yet the
+permanent "trust layer" envisioned above; it's currently the *entire*
+product. WhatsApp Business API integration is still wanted and still
+blocked on the same prerequisites listed below.
 
 ## Still blocked on the user (can't proceed without them)
 
