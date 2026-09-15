@@ -77,7 +77,54 @@ ${answerKey}
   "weakAreas": ["按錯誤歸納的弱項，例如：加減混合運算次序、長除法"]
 }`;
 
-  const anthropicRes = await fetch("https://api.anthropic.com/v1/messages", {
+  let parsed;
+  try {
+    parsed = await callClaude("claude-sonnet-5", 2048, images, prompt, apiKey);
+  } catch (e) {
+    return json({ error: e.kind || "upstream_error", message: e.uiMessage, detail: e.detail }, e.status || 502);
+  }
+
+  // Hybrid pass: Sonnet is cheap but sometimes punts on genuinely messy
+  // handwriting (correct: null). Rather than paying Opus's much higher
+  // price to re-read every question, only re-send the unsure ones -- the
+  // photos still have to be re-uploaded (Opus needs the pixels too), but
+  // the output is tiny (a handful of verdicts) instead of the whole sheet,
+  // which is where most of the cost actually was.
+  const unsure = (parsed.results || []).filter((r) => r.correct === null);
+  if (unsure.length) {
+    const recheckPrompt = `你是一位細心的小學數學老師。另一位老師已經批改咗呢份卷嘅大部分題目，但以下題號嘅手寫字佢睇唔清楚，需要你用更仔細嘅眼光再睇一次相片：第 ${unsure.map((r) => r.question).join("、")} 題。
+
+呢份卷完整嘅正確答案（按題號排列）：
+${answerKey}
+
+只需要回覆上面列出嘅題號，要求：
+1. 盡量判斷，只有真係完全睇唔到／冇畫任何筆劃先設 "correct" 為 null。
+2. "note" 最多四個字，答對可留空。
+3. 只回覆JSON，不要其他文字：
+{"results":[{"question":"題號","studentAnswer":"學生答案","correct":true/false/null,"note":""}]}`;
+
+    try {
+      const recheck = await callClaude("claude-opus-5", 1024, images, recheckPrompt, apiKey);
+      const byQuestion = new Map((recheck.results || []).map((r) => [String(r.question), r]));
+      parsed.results = (parsed.results || []).map((r) => {
+        const updated = byQuestion.get(String(r.question));
+        return updated && r.correct === null ? { ...r, ...updated } : r;
+      });
+    } catch (e) {
+      // Opus recheck failing shouldn't sink the whole response -- the
+      // Sonnet-only result (with its "unsure" flags intact) is still useful.
+    }
+
+    const graded = parsed.results.filter((r) => r.correct !== null);
+    const correctCount = graded.filter((r) => r.correct === true).length;
+    parsed.score = `${correctCount} / ${graded.length}`;
+  }
+
+  return json(parsed, 200);
+}
+
+async function callClaude(model, maxTokens, images, prompt, apiKey) {
+  const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -85,8 +132,8 @@ ${answerKey}
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
-      model: "claude-sonnet-5",
-      max_tokens: 2048,
+      model,
+      max_tokens: maxTokens,
       messages: [
         {
           role: "user",
@@ -106,29 +153,19 @@ ${answerKey}
     }),
   });
 
-  if (!anthropicRes.ok) {
-    const errText = await anthropicRes.text();
-    return json(
-      { error: "upstream_error", message: "改卷服務暫時無法使用，請稍後再試。", detail: errText.slice(0, 300) },
-      502
-    );
+  if (!res.ok) {
+    const errText = await res.text();
+    throw { kind: "upstream_error", uiMessage: "改卷服務暫時無法使用，請稍後再試。", detail: errText.slice(0, 300), status: 502 };
   }
 
-  const data = await anthropicRes.json();
+  const data = await res.json();
   const text = (data.content || []).map((b) => b.text || "").join("");
-
-  let parsed;
   try {
     const match = text.match(/\{[\s\S]*\}/);
-    parsed = JSON.parse(match ? match[0] : text);
+    return JSON.parse(match ? match[0] : text);
   } catch (e) {
-    return json(
-      { error: "parse_error", message: "改卷結果解析失敗，請再試一次。", raw: text.slice(0, 500) },
-      502
-    );
+    throw { kind: "parse_error", uiMessage: "改卷結果解析失敗，請再試一次。", detail: text.slice(0, 500), status: 502 };
   }
-
-  return json(parsed, 200);
 }
 
 function json(obj, status) {
