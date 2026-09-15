@@ -5,9 +5,14 @@
 // client-side and randomized per worksheet, so there's no server-side
 // record of "the right answer" unless the client sends it along).
 //
-// Needs an ANTHROPIC_API_KEY secret set on this Worker (Cloudflare
-// dashboard: Workers & Pages -> this worker -> Settings -> Variables and
-// Secrets -> Add -> type "Secret" -- never put the real key in this file).
+// Needs an ANTHROPIC_API_KEY bound on this Worker via Cloudflare's Secrets
+// Store (Workers & Pages -> this worker -> Bindings -> Add binding ->
+// Secrets Store -- never put the real key in this file). A Secrets Store
+// binding is NOT a plain string like a classic `wrangler secret put` value
+// -- it's an object exposing an async .get(), so the key must be read with
+// `await env.ANTHROPIC_API_KEY.get()`. Using the binding object directly
+// (e.g. as a header value) silently stringifies to garbage and Anthropic
+// rejects it as an invalid key -- this bit us once already.
 
 export default {
   async fetch(request, env, ctx) {
@@ -26,6 +31,9 @@ async function handleGrade(request, env) {
       503
     );
   }
+  const apiKey = typeof env.ANTHROPIC_API_KEY === "string"
+    ? env.ANTHROPIC_API_KEY
+    : await env.ANTHROPIC_API_KEY.get();
 
   let body;
   try {
@@ -62,7 +70,7 @@ ${answerKey}
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "x-api-key": env.ANTHROPIC_API_KEY,
+      "x-api-key": apiKey,
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
