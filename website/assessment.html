@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>數學小評估 — Little Steps</title>
+<style>
+  :root{
+    --ink:#222; --muted:#666; --card:#ffffff; --border:#333;
+    --pink:#f28ba0; --pink-soft:#fbd9df; --pink-ink:#c23f5b;
+    --yellow:#f6c453; --yellow-soft:#fdedc7;
+  }
+  *{box-sizing:border-box;}
+  body{
+    color:var(--ink); margin:0; background:#f3ede4;
+    font-family:"Noto Sans TC","PingFang TC",-apple-system,BlinkMacSystemFont,sans-serif;
+    padding-block:20px; padding-inline:16px;
+  }
+  .wrap{max-width:680px; margin:0 auto;}
+  .back{display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.85rem; font-weight:700; margin-bottom:16px;}
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:20px; justify-content:center;}
+  button{
+    font-family:inherit; font-size:.85rem; font-weight:800; padding:11px 18px;
+    border-radius:14px; border:none; cursor:pointer; box-shadow:0 2px 10px rgba(0,0,0,0.08);
+  }
+  button:active{transform:translateY(1px);}
+  #genBtn{background:var(--pink); color:#fff;}
+  #printBtn{background:var(--yellow); color:var(--ink);}
+  #answerBtn{background:#fff; color:var(--ink); border:1px solid #ccc;}
+
+  .sheet{background:#fff; padding:28px 26px; box-shadow:0 2px 14px rgba(0,0,0,0.1); font-size:14px; line-height:1.6;}
+  .sheet-header{display:flex; justify-content:space-between; align-items:flex-start;}
+  .sheet-brand{font-family:"Short Stack",cursive; font-size:1.1rem; color:var(--pink-ink);}
+  .paper-title{text-align:center; font-weight:700; font-size:16px; margin:2px 0;}
+  .paper-meta{text-align:center; font-size:12.5px; margin-bottom:2px;}
+  .paper-goal{font-size:12.5px; margin-bottom:10px;}
+  .page-tag{text-align:right; font-size:12px; color:#444; white-space:nowrap;}
+
+  table.infobox{width:100%; border-collapse:collapse; margin-bottom:14px; font-size:13px;}
+  table.infobox td{border:1px solid var(--border); padding:6px 8px;}
+  .parent-sign{font-size:13px; text-align:right; margin-bottom:16px;}
+  .parent-sign .line{display:inline-block; width:160px; border-bottom:1px solid var(--border); margin-left:6px;}
+
+  .sec-title{font-weight:700; margin:18px 0 8px; font-size:14.5px;}
+  .sec-marks{font-weight:400; font-size:12.5px; color:#444;}
+
+  .blk-item{margin-bottom:16px;}
+  .blk-row{display:flex; align-items:flex-end; gap:14px; margin-bottom:6px;}
+  .cube{width:13px; height:13px; border:1px solid var(--border); display:inline-block; margin:0 1px;}
+  .rod{display:inline-flex; flex-direction:column-reverse; border:1px solid var(--border); margin-right:4px;}
+  .rod .cube{border:none; border-top:1px solid #999; margin:0; width:16px;}
+  .rod .cube:first-child{border-top:none;}
+  .ones-cluster{display:flex; flex-wrap:wrap; width:34px;}
+  .boxed-num{border:1.5px solid var(--border); display:inline-block; padding:1px 8px; font-weight:700; margin-bottom:4px;}
+  .sub-q{margin:4px 0 0 0; font-size:13.5px;}
+  .fillline{display:inline-block; min-width:70px; border-bottom:1px solid var(--border); text-align:center; font-weight:700; color:transparent;}
+  .sheet.show-answers .fillline{color:var(--pink-ink);}
+
+  .pencil{display:flex; align-items:stretch; margin:8px 0 14px; max-width:420px;}
+  .pencil-tip{width:0; height:0; border-top:19px solid transparent; border-bottom:19px solid transparent; border-right:16px solid var(--border); flex-shrink:0;}
+  .pencil-body{display:flex; border:1.5px solid var(--border); border-left:none; flex:1;}
+  .pencil-cell{flex:1; display:flex; align-items:center; justify-content:center; border-left:1.5px solid var(--border); height:38px; font-weight:700; font-size:14px;}
+  .pencil-cell:first-child{border-left:none;}
+  .pencil-cell .fillline{min-width:24px; color:transparent;}
+  .sheet.show-answers .pencil-cell .fillline{color:var(--pink-ink);}
+
+  table.calc{width:100%; border-collapse:collapse; margin-bottom:10px; font-size:14px;}
+  table.calc td{border:1px solid var(--border); padding:10px 12px; width:50%;}
+
+  .mcq{margin-bottom:14px; font-size:13.5px;}
+  .mcq-opts{display:grid; grid-template-columns:1fr 1fr; gap:6px 20px; margin-top:6px;}
+  .opt{display:flex; align-items:center; gap:6px;}
+  .radio{width:13px; height:13px; border-radius:50%; border:1.3px solid var(--border); flex-shrink:0; display:inline-block;}
+  .opt.correct .radio{background:radial-gradient(circle,transparent 40%,transparent 41%);}
+  .sheet.show-answers .opt.correct .radio{background:var(--border);}
+
+  .pic-item{border:1px solid var(--border); padding:12px; margin-bottom:12px;}
+  .pic-row{font-size:22px; letter-spacing:2px; margin-bottom:8px; line-height:1.3;}
+  .pic-eq{display:flex; align-items:center; gap:8px; margin-top:8px;}
+  .eqbox{width:46px; height:32px; border:1.3px solid var(--border); display:flex; align-items:center; justify-content:center; font-weight:700; color:transparent;}
+  .sheet.show-answers .eqbox{color:var(--pink-ink);}
+  .eqcircle{width:26px; height:26px; border:1.3px solid var(--border); border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; color:transparent;}
+  .sheet.show-answers .eqcircle{color:var(--pink-ink);}
+
+  .word-item{margin-bottom:14px; font-size:13.5px;}
+  .draw-box{border:1px solid var(--border); padding:10px; margin:6px 0; min-height:70px; font-size:12px; color:#888;}
+  .draw-box .ans{margin-top:44px; font-size:13.5px; color:var(--ink);}
+
+  .cross-grid{display:grid; grid-template-columns:repeat(3,46px); grid-template-rows:repeat(3,40px); margin:10px 0; font-size:15px; font-weight:700;}
+  .cross-cell{border:1px solid var(--border); display:flex; align-items:center; justify-content:center; color:transparent;}
+  .cross-cell.given{color:var(--ink);}
+  .sheet.show-answers .cross-cell{color:var(--pink-ink);}
+  .sheet.show-answers .cross-cell.given{color:var(--ink);}
+  .cross-cell.empty{border:none;}
+
+  .footnote{margin-top:20px; font-size:.75rem; color:#999; text-align:center; border-top:1px dashed #ccc; padding-top:10px;}
+  .paper-credit{font-family:"Short Stack",cursive; font-size:.85rem; color:var(--pink-ink); margin-top:6px;}
+
+  @media print {
+    body{background:#fff; padding:0;}
+    .no-print{display:none;}
+    .sheet{box-shadow:none; padding:0;}
+    .fillline,.eqbox,.eqcircle,.cross-cell,.opt.correct .radio{color:transparent !important; background:none !important;}
+  }
+</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Short+Stack&display=swap" rel="stylesheet">
+
+<div class="wrap">
+  <a class="back no-print" href="index.html">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 5l-7 7 7 7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    返回首頁
+  </a>
+
+  <div class="toolbar no-print">
+    <button id="genBtn">重新出卷</button>
+    <button id="printBtn">列印 / 儲存為 PDF</button>
+    <button id="answerBtn">查看答案</button>
+  </div>
+
+  <div class="sheet" id="sheet"></div>
+</div>
+
+<script>
+function randId(n){
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let s = ""; for(let i=0;i<n;i++) s += chars[Math.floor(Math.random()*chars.length)];
+  return s;
+}
+function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
+function numToChinese(n){
+  const d = ['零','一','二','三','四','五','六','七','八','九'];
+  if(n===0) return '零';
+  if(n===100) return '一百';
+  if(n<10) return d[n];
+  if(n<20) return '十'+(n%10?d[n%10]:'');
+  const t=Math.floor(n/10), o=n%10;
+  return d[t]+'十'+(o?d[o]:'');
+}
+function cubesHTML(count){
+  let out='';
+  for(let i=0;i<count;i++) out+='<span class="cube"></span>';
+  return `<span class="ones-cluster">${out}</span>`;
+}
+function rodHTML(){
+  let out='';
+  for(let i=0;i<10;i++) out+='<span class="cube"></span>';
+  return `<span class="rod">${out}</span>`;
+}
+
+function buildAssessment(){
+  const answers = [];
+  let n = 1;
+
+  // (一) block counting -- item 1: ones only, item 2: tens rods + given total
+  const q1 = randInt(4,9);
+  const q2Tens = randInt(3,7);
+  const q2Total = q2Tens*10;
+  const sec1 = `
+    <div class="sec-title">(一) 找出數粒代表的數量和該數的讀法，回答問題。 <span class="sec-marks">(每題1分，共4分)</span></div>
+    <div class="blk-item">
+      <div>1)</div>
+      <div class="blk-row">${cubesHTML(q1)}</div>
+      <div class="sub-q">a) 共有數粒<span class="fillline">${q1}</span>粒。</div>
+      <div class="sub-q">b) 這個數讀作<span class="fillline">${numToChinese(q1)}</span>。</div>
+    </div>
+    <div class="blk-item">
+      <div>2)</div>
+      <div class="blk-row"><span class="boxed-num">${q2Total}</span></div>
+      <div class="blk-row">${Array.from({length:q2Tens}).map(rodHTML).join('')}</div>
+      <div class="sub-q">a) 如果取走1粒，還有數粒<span class="fillline">${q2Total-1}</span>粒。</div>
+      <div class="sub-q">b) 這個數讀作<span class="fillline">${numToChinese(q2Total)}</span>。</div>
+    </div>`;
+  answers.push(`1a) ${q1}`, `1b) ${numToChinese(q1)}`, `2a) ${q2Total-1}`, `2b) ${numToChinese(q2Total)}`);
+
+  // (二) pencil number sequences
+  function pencilSeq(){
+    const step = [1,-1,2,-2][randInt(0,3)];
+    const start = step>0 ? randInt(1,90-step*3) : randInt(1-step*3,99);
+    const vals = [0,1,2,3].map(i=>start+step*i);
+    const blankIdx = randInt(0,3);
+    const cells = vals.map((v,i)=> i===blankIdx
+      ? `<div class="pencil-cell"><span class="fillline">${v}</span></div>`
+      : `<div class="pencil-cell">${v}</div>`).join('');
+    answers.push(`${n}) ${vals[blankIdx]}`);
+    n++;
+    return `<div class="pencil"><div class="pencil-tip"></div><div class="pencil-body">${cells}</div></div>`;
+  }
+  const sec2 = `
+    <div class="sec-title">(二) 依規律填上數字。(全對才給分) <span class="sec-marks">(每題2分，共6分)</span></div>
+    ${pencilSeq()}${pencilSeq()}${pencilSeq()}`;
+
+  // (三) fill-in-the-blank calculations, 6 items in a 2-col table
+  function calcTemplates(){
+    const t = randInt(0,4);
+    if(t===0){ const a=randInt(0,9), b=randInt(1,9); return {html:`${a} + ${b} = ${b} + <span class="fillline">${a}</span> ,<br>結果都是<span class="fillline">${a+b}</span>`, ans:`${a}, ${a+b}`}; }
+    if(t===1){ const a=randInt(0,9), b=randInt(0,9); return {html:`${a} + ${b} = <span class="fillline">${a+b}</span>`, ans:`${a+b}`}; }
+    if(t===2){ const a=randInt(5,9), r=randInt(a+1,18); return {html:`${a} + <span class="fillline">${r-a}</span> = ${r}`, ans:`${r-a}`}; }
+    if(t===3){ const b=randInt(1,9), c=randInt(1,9), x=b+c; return {html:`${x} - <span class="fillline">${b}</span> = ${c}`, ans:`${b}`}; }
+    const b=randInt(1,9), x=randInt(b+1,18), c=x-b; return {html:`<span class="fillline">${x}</span> - ${b} = ${c}`, ans:`${x}`};
+  }
+  let calcCells = '';
+  for(let i=0;i<6;i++){
+    const c = calcTemplates();
+    calcCells += `<td>${n}) ${c.html}</td>`;
+    answers.push(`${n}) ${c.ans}`);
+    n++;
+    if(i%2===1){ calcCells = `<tr>${calcCells}</tr>`; }
+  }
+  const sec3 = `
+    <div class="sec-title">(三) 計算下列各題。 <span class="sec-marks">(每題2分，共12分)</span></div>
+    <table class="calc"><tbody>${calcCells}</tbody></table>`;
+
+  // (四) MCQ with radio circles
+  function mcq(question, options, correctIdx){
+    const labels = ['A','B','C','D'];
+    const optsHtml = options.map((o,i)=>`<div class="opt${i===correctIdx?' correct':''}"><span class="radio"></span>${labels[i]}. ${o}</div>`).join('');
+    const html = `<div class="mcq">${n}) ${question}<div class="mcq-opts">${optsHtml}</div></div>`;
+    answers.push(`${n}) ${options[correctIdx]}`);
+    n++;
+    return html;
+  }
+  const descStart = randInt(60,99);
+  const mcq1 = mcq('以下哪一組數是以倒數排列？', [
+    `${descStart}，${descStart-1}，${descStart-2}，${descStart+1}，${descStart+3}`,
+    `${descStart-4}，${descStart-3}，${descStart-2}，${descStart-1}，${descStart}`,
+    `${descStart}，${descStart-1}，${descStart-2}，${descStart-3}，${descStart-4}`,
+    `${descStart-8}，${descStart-6}，${descStart-4}，${descStart-2}，${descStart}`,
+  ], 2);
+  const zA = randInt(1,9);
+  const mcq2 = mcq('以下哪一條算式的結果是 0？', [`${zA} - 0`, `${zA} + 0`, `${zA} + ${zA}`, `${zA} - ${zA}`], 3);
+  const wA = randInt(2,9);
+  const wrongIdx = randInt(0,3);
+  const stmts = [`${wA} - 0 = ${wA}`, `${wA} + 0 = ${wA}`, `0 + ${wA} = ${wA}`, `${wA} - ${wA} = 0`];
+  stmts[wrongIdx] = `${wA} - ${wA} = 1`; // unconditionally false regardless of wA
+  const mcq3 = mcq('以下哪一條算式的結果不正確？', stmts, wrongIdx);
+  const faceA = randInt(10,18), faceB = randInt(1,faceA-1);
+  answers.push(`${n}) ${faceB}`);
+  const mcq4extra = `<div class="mcq">${n}) 如果 ${faceB} + ☺ = ${faceA}，那麼 ${faceA} - ☺ = <span class="fillline">${faceB}</span></div>`;
+  n++;
+  const sec4 = `
+    <div class="sec-title">(四) 回答下列問題，並把該選項的圓圈塗黑和塗滿。 <span class="sec-marks">(每題2分，共8分)</span></div>
+    ${mcq1}${mcq2}${mcq3}${mcq4extra}`;
+
+  // (五) picture counting -> number sentence
+  const iconSets = [
+    {icon:'🍦', name:'雪糕'}, {icon:'☕', name:'飲品'}, {icon:'🦀', name:'蟹'}, {icon:'🐟', name:'魚'},
+  ];
+  function picItem(kind){
+    if(kind==='sub'){
+      const total = randInt(9,15), used = randInt(2,total-2);
+      const left = total-used;
+      const row = iconSets[0].icon.repeat(total);
+      const html = `<div class="pic-item">${n})<div class="pic-row">${row}</div>
+        ${total} 杯雪糕，吃去 ${used} 杯，還有雪糕<span class="fillline">${left}</span>杯。
+        <div class="pic-eq"><span class="eqbox">${total}</span><span class="eqcircle">-</span><span class="eqbox">${used}</span>=<span class="eqbox">${left}</span></div>
+      </div>`;
+      answers.push(`${n}) ${left}`);
+      n++;
+      return html;
+    }
+    if(kind==='add'){
+      const a = randInt(2,6), b = randInt(2,6);
+      const html = `<div class="pic-item">${n})<div class="pic-row">${'☕'.repeat(a)} ${'🧋'.repeat(b)}</div>
+        ☕ 和 🧋 共有飲品<span class="fillline">${a+b}</span>杯。
+        <div class="pic-eq"><span class="eqbox">${a}</span><span class="eqcircle">+</span><span class="eqbox">${b}</span>=<span class="eqbox">${a+b}</span></div>
+      </div>`;
+      answers.push(`${n}) ${a+b}`);
+      n++;
+      return html;
+    }
+    if(kind==='diff'){
+      const a = randInt(6,10), b = randInt(2,a-1);
+      const html = `<div class="pic-item">${n})<div class="pic-row">${'🦀'.repeat(a)}<br>${'🦐'.repeat(b)}</div>
+        🦀 比 🦐 多<span class="fillline">${a-b}</span>隻。
+        <div class="pic-eq"><span class="eqbox">${a}</span><span class="eqcircle">-</span><span class="eqbox">${b}</span>=<span class="eqbox">${a-b}</span></div>
+      </div>`;
+      answers.push(`${n}) ${a-b}`);
+      n++;
+      return html;
+    }
+    const total = randInt(7,9), part = randInt(3,total-2), rest = total-part;
+    const html = `<div class="pic-item">${n})${total} 條魚中，🐟有 ${part} 條，其餘的是 🐠。
+      <div class="pic-row">${'🐟'.repeat(part)}${'🐠'.repeat(rest)}</div>
+      🐠有<span class="fillline">${rest}</span>條。
+      <div class="pic-eq"><span class="eqbox">${total}</span><span class="eqcircle">-</span><span class="eqbox">${part}</span>=<span class="eqbox">${rest}</span></div>
+    </div>`;
+    answers.push(`${n}) ${rest}`);
+    n++;
+    return html;
+  }
+  const sec5 = `
+    <div class="sec-title">(五) 看圖算一算，並寫出算式。 <span class="sec-marks">(每題3分，共12分)</span></div>
+    ${picItem('sub')}${picItem('add')}${picItem('diff')}${picItem('fish')}`;
+
+  // (六) word problems + magic cross puzzle
+  const diff = randInt(2,6), sisterLess = randInt(3,8), sisterMore = sisterLess+diff, totalCandy = sisterMore+sisterLess;
+  const word1 = `<div class="word-item">${n}) 姐姐和妹妹共有糖果${totalCandy}粒，姐姐比妹妹多${diff}粒，
+    <br>姐姐有糖果多少粒？妹妹有糖果多少粒？(2分)
+    <div class="draw-box">你可在此畫一畫，找答案。
+      <div class="ans">答：姐姐有糖果<span class="fillline">${sisterMore}</span>粒，妹妹有糖果<span class="fillline">${sisterLess}</span>粒。</div>
+    </div></div>`;
+  answers.push(`${n}) 姐姐${sisterMore}, 妹妹${sisterLess}`);
+  n++;
+
+  const front = randInt(2,5), behind = front+1, queueTotal = front+1+behind, position = front+1;
+  const word2 = `<div class="word-item">${n}) 小靜正在排隊買雪糕，共有${queueTotal}人排隊，
+    <br>排在小靜後面的比排在她前面的多1人，小靜排第幾？
+    <div class="draw-box">你可在此畫一畫，找答案。
+      <div class="ans">答：小靜排第<span class="fillline">${position}</span>。(2分)</div>
+    </div></div>`;
+  answers.push(`${n}) 第${position}`);
+  n++;
+
+  const eqL = randInt(9,15);
+  const word3 = `<div class="word-item">${n}) <span class="fillline">${eqL}</span> - 3 = <span class="fillline">${eqL-6}</span> + 3 (2分)</div>`;
+  answers.push(`${n}) 左=${eqL}, 右=${eqL-6}`);
+  n++;
+
+  const target = 13, center = randInt(2,5);
+  const top = randInt(1, target-center-1), bottom = target-center-top;
+  const left = randInt(1, target-center-1), right = target-center-left;
+  const word4 = `<div class="word-item">${n}) 填上適當的數字，使直行和橫行加起來的答案都是${target}。 (2分)
+    <div class="cross-grid">
+      <div class="cross-cell empty"></div><div class="cross-cell given">${top}</div><div class="cross-cell empty"></div>
+      <div class="cross-cell">${left}</div><div class="cross-cell given">${center}</div><div class="cross-cell">${right}</div>
+      <div class="cross-cell empty"></div><div class="cross-cell given">${bottom}</div><div class="cross-cell empty"></div>
+    </div></div>`;
+  answers.push(`${n}) 左=${left}, 右=${right}`);
+  n++;
+
+  const sec6 = `
+    <div class="sec-title">(六) 趣味解難。 <span class="sec-marks">(共8分)</span></div>
+    ${word1}${word2}${word3}${word4}`;
+
+  return { html: sec1+sec2+sec3+sec4+sec5+sec6, answers };
+}
+
+function renderAssessment(worksheetId){
+  const { html, answers } = buildAssessment();
+  document.getElementById('sheet').innerHTML = `
+    <div class="sheet-header">
+      <div class="sheet-brand">Little Steps ♥</div>
+      <div class="page-tag">第一頁<br>全卷共一頁</div>
+    </div>
+    <div class="paper-title">數學小評估</div>
+    <div class="paper-meta">2025-2026 年度上學期</div>
+    <div class="paper-goal">目標：基本加減、0的認識、加和減、100以內的數</div>
+    <table class="infobox">
+      <tr><td>姓名：</td><td>( &nbsp; )</td><td>日期</td><td>2026 年 &nbsp; 月 &nbsp; 日</td><td>成績</td><td>&nbsp; / 50</td></tr>
+      <tr><td>班別</td><td>一年級 &nbsp; 班</td><td>科目</td><td colspan="3">數學科</td></tr>
+    </table>
+    <div class="parent-sign">家長簽名：<span class="line"></span></div>
+    ${html}
+    <div class="footnote">Print this page, have your child complete it on paper, then tap "查看答案" to check their work.
+      <div class="paper-credit">Little Steps ♥ · hk-maths.violin-kwai.workers.dev · WORKSHEET ${worksheetId}</div>
+    </div>
+  `;
+  try {
+    localStorage.setItem('hk_maths_answer_key', JSON.stringify({ worksheetId, answers, savedAt: Date.now() }));
+    const bankKey = 'hk_maths_worksheet_bank';
+    const bank = JSON.parse(localStorage.getItem(bankKey) || '[]');
+    bank.unshift({ worksheetId, answers, savedAt: Date.now() });
+    localStorage.setItem(bankKey, JSON.stringify(bank.slice(0, 15)));
+  } catch (e) {}
+}
+
+function newAssessment(){
+  renderAssessment(randId(6));
+  document.getElementById('answerBtn').textContent = '查看答案';
+}
+
+document.getElementById('genBtn').onclick = newAssessment;
+document.getElementById('printBtn').onclick = () => window.print();
+document.getElementById('answerBtn').onclick = () => {
+  const sheet = document.getElementById('sheet');
+  const btn = document.getElementById('answerBtn');
+  const showing = sheet.classList.toggle('show-answers');
+  btn.textContent = showing ? '隱藏答案' : '查看答案';
+};
+
+newAssessment();
+</script>
+</body>
+</html>
