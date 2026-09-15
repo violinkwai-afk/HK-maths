@@ -208,6 +208,20 @@
       });
     }
 
+    function saveToHistory(data) {
+      try {
+        const key = 'hk_maths_grading_history';
+        const history = JSON.parse(localStorage.getItem(key) || '[]');
+        history.unshift({
+          date: Date.now(),
+          score: data.score || '',
+          weakAreas: Array.isArray(data.weakAreas) ? data.weakAreas : [],
+          results: Array.isArray(data.results) ? data.results : [],
+        });
+        localStorage.setItem(key, JSON.stringify(history.slice(0, 30)));
+      } catch (e) {}
+    }
+
     function renderResult(data) {
       const marks = { true: ['✓','ok'], false: ['✗','no'], null: ['?','unsure'] };
       let html = `<div class="result-score">${escapeHtml(data.score || '')}</div>`;
@@ -258,6 +272,7 @@
           notice.style.display = 'block';
         } else {
           renderResult(data);
+          saveToHistory(data);
         }
       } catch (e) {
         notice.textContent = '網絡錯誤，請檢查連線後再試一次。';
