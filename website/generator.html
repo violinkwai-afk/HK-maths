@@ -46,7 +46,8 @@
     background:var(--card); border:1px solid var(--border); border-radius:22px;
     padding:24px 20px; box-shadow:0 2px 10px rgba(58,43,46,0.06);
   }
-  .paper-brand{text-align:center; font-size:.85rem; font-weight:700; color:var(--pink-ink); margin-bottom:4px;}
+  .paper-brand{text-align:center; font-family:"Short Stack",cursive; font-size:1.6rem; font-weight:400; color:var(--pink-ink); margin-bottom:6px; line-height:1;}
+  .paper-brand .heart{color:var(--accent);}
   .paper-title{text-align:center; font-size:16px; font-weight:700; margin:0 0 2px;}
   .paper-sub{text-align:center; font-size:.68rem; color:var(--muted); margin-bottom:20px; letter-spacing:.02em; opacity:.7;}
   .paper-credit{font-size:.68rem; color:var(--muted); opacity:.6; margin-top:6px; letter-spacing:.01em;}
@@ -96,7 +97,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Short+Stack&display=swap" rel="stylesheet">
 
 <div class="wrap">
   <a class="back no-print" href="index.html">
@@ -235,7 +236,7 @@ function renderSheet(worksheetId, questions, isReview){
 
   const reviewNotice = isReview ? `<div class="review-notice">重點溫習部份 — 題目特意調淺，等小朋友先掌握基礎，再逐步加深。</div>` : '';
   document.getElementById('sheet').innerHTML = `
-    <div class="paper-brand">Little Steps ♥</div>
+    <div class="paper-brand">Little Steps <span class="heart">♥</span></div>
     <div class="paper-title">${isReview ? '重點溫習卷' : 'Primary 1 Maths Practice'}</div>
     <div class="paper-sub">WORKSHEET ${worksheetId}</div>
     ${reviewNotice}
