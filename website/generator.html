@@ -46,8 +46,10 @@
     background:var(--card); border:1px solid var(--border); border-radius:22px;
     padding:24px 20px; box-shadow:0 2px 10px rgba(58,43,46,0.06);
   }
+  .paper-brand{text-align:center; font-size:.85rem; font-weight:700; color:var(--pink-ink); margin-bottom:4px;}
   .paper-title{text-align:center; font-size:16px; font-weight:700; margin:0 0 2px;}
-  .paper-sub{text-align:center; font-size:.78rem; color:var(--muted); margin-bottom:20px; letter-spacing:.03em;}
+  .paper-sub{text-align:center; font-size:.68rem; color:var(--muted); margin-bottom:20px; letter-spacing:.02em; opacity:.7;}
+  .paper-credit{font-size:.68rem; color:var(--muted); opacity:.6; margin-top:6px; letter-spacing:.01em;}
   .section-title{
     font-weight:700; font-size:1.05rem; margin:24px 0 14px; padding-bottom:6px;
     border-bottom:2px solid var(--line); text-wrap:balance;
@@ -57,15 +59,15 @@
   .q{margin-bottom:24px;}
   .q-text{font-size:1.25rem; margin-bottom:10px; line-height:1.4; font-variant-numeric:tabular-nums;}
   .q-num{font-weight:700; margin-right:4px; color:var(--accent-ink);}
-  .ans-line{border-bottom:1.5px solid var(--line); width:100%; max-width:170px; height:26px; display:block;}
-  .ans-line.wide{width:100%; max-width:420px; display:block;}
+  .ans-line{border-bottom:1.5px solid var(--line); width:100%; max-width:170px; height:38px; display:block;}
+  .ans-line.wide{width:100%; max-width:420px; height:38px; display:block;}
   .section2-grid{display:flex; flex-wrap:wrap; gap:24px 32px;}
   .section2-grid .q{display:flex; align-items:center; gap:10px;}
-  .vertical-sum{font-size:1.25rem; font-family:"Courier New",monospace; width:140px; font-variant-numeric:tabular-nums;}
+  .vertical-sum{font-size:1.25rem; font-family:"Courier New",monospace; width:160px; font-variant-numeric:tabular-nums;}
   .vertical-sum .row{display:flex; justify-content:flex-end; gap:6px;}
-  .vertical-sum .box{display:inline-block; width:28px; height:28px; border:1.5px solid var(--line); border-radius:3px;}
-  .vertical-sum .digit{display:inline-block; width:28px; text-align:center;}
-  .vertical-sum .op{width:28px; text-align:center;}
+  .vertical-sum .box{display:inline-block; width:34px; height:34px; border:1.5px solid var(--line); border-radius:3px;}
+  .vertical-sum .digit{display:inline-block; width:34px; text-align:center;}
+  .vertical-sum .op{width:34px; text-align:center;}
   .vertical-sum .line{border-top:1.5px solid var(--line); margin:4px 0;}
   .vertical-sum .result{justify-content:flex-end; font-weight:700;}
   .footnote{
@@ -102,8 +104,8 @@
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 5l-7 7 7 7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
     返回首頁
   </a>
-  <h1 class="brand">下載試卷</h1>
-  <p class="tagline">每次都是全新練習，無需登記。</p>
+  <h1 class="brand no-print">下載試卷</h1>
+  <p class="tagline no-print">每次都是全新練習，無需登記。</p>
 
   <div class="toolbar no-print">
     <button id="genBtn">重新出卷</button>
@@ -235,13 +237,16 @@ function renderSheet(worksheetId, questions, isReview){
 
   const reviewNotice = isReview ? `<div class="review-notice">重點溫習部份 — 題目特意調淺，等小朋友先掌握基礎，再逐步加深。</div>` : '';
   document.getElementById('sheet').innerHTML = `
+    <div class="paper-brand">Little Steps ♥</div>
     <div class="paper-title">${isReview ? '重點溫習卷' : 'Primary 1 Maths Practice'}</div>
     <div class="paper-sub">WORKSHEET ${worksheetId}</div>
     ${reviewNotice}
     ${s1.length ? `<div class="section-title">(1) Work out the answers.</div><div class="section1">${s1.join('')}</div>` : ''}
     ${s2.length ? `<div class="section-title">(2) Fill in the missing digits.</div><div class="section2-grid">${s2.join('')}</div>` : ''}
     ${s3.length ? `<div class="section-title">(3) Word problem.</div><div class="section3">${s3.join('')}</div>` : ''}
-    <div class="footnote">Print this page, have your child complete it on paper, then use the answer key above to check their work.<br><b>WORKSHEET ${worksheetId}</b></div>
+    <div class="footnote">Print this page, have your child complete it on paper, then use the answer key above to check their work.
+      <div class="paper-credit">Little Steps · hk-maths.violin-kwai.workers.dev · WORKSHEET ${worksheetId}</div>
+    </div>
   `;
   document.getElementById('answerBox').innerHTML = `<b>Answer key — Worksheet ${worksheetId}</b><ol>${answers.map(a=>`<li>${a}</li>`).join('')}</ol>`;
 
