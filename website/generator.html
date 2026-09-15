@@ -41,6 +41,7 @@
   #genBtn{background:var(--pink); color:var(--ink);}
   #printBtn{background:var(--yellow); color:var(--ink);}
   #answerBtn{background:var(--card); color:var(--ink); border:1px solid var(--border);}
+  #langBtn{background:var(--pink-soft); color:var(--pink-ink);}
 
   .sheet{
     background:var(--card); border:1px solid var(--border); border-radius:22px;
@@ -111,6 +112,7 @@
     <button id="genBtn">重新出卷</button>
     <button id="printBtn">列印 / 儲存為 PDF</button>
     <button id="answerBtn">查看答案</button>
+    <button id="langBtn">中文</button>
   </div>
 
   <div class="sheet" id="sheet"></div>
@@ -125,47 +127,87 @@ function randId(n){
 }
 function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
 
+// Language toggle design: every gen* function below returns pure DATA
+// (numbers/kind), never baked-in text. A separate text*() function per
+// type turns that data into English or Chinese wording. This means
+// switching language never re-rolls random numbers -- the same question
+// data just gets described differently -- so the answer key can never
+// drift out of sync between the two languages (the actual risk in a
+// naive "write two separate generators" approach).
 function genAddSub(easy, forceOp){
   const op = forceOp || (Math.random()<0.5 ? "+" : "-");
-  let a,b,answer,text;
+  let a,b,answer;
   if(op==="+"){
     if(easy){ a=randInt(1,8); b=randInt(1,9-a); } // single-digit, sum stays under 10
     else { a=randInt(10,69); b=randInt(10,99-a); }
-    answer=a+b; text=`${a} + ${b} =`;
+    answer=a+b;
   } else {
     if(easy){ a=randInt(5,9); b=randInt(1,a); } // single-digit, no borrowing
     else { a=randInt(20,99); b=randInt(10,a); }
-    answer=a-b; text=`${a} - ${b} =`;
+    answer=a-b;
   }
-  return {type:"equation", text, answer:String(answer)};
+  return {type:"equation", op, a, b, answer:String(answer)};
 }
+function equationText(q){ return `${q.a} ${q.op} ${q.b} =`; } // numbers/symbols only, same in any language
+
 function genMissingDigitSub(){
   const x=randInt(4,9), y=randInt(0,9);
   const top=x*10+8, sub=30+y, result=top-sub;
   if(result<10||result>98) return genMissingDigitSub();
-  // The rendered puzzle shows "_8 - 3_ = result" with the tens digit of the
-  // top number (x) and the ones digit of the subtracted number (y) left
-  // blank for the child to fill in. The answer key MUST state x and y
-  // explicitly -- earlier this only repeated the puzzle pattern with
-  // underscores, which tells a parent/grader nothing about what the
-  // correct digits actually are.
-  return {type:"missing_digit_sub", topTens:x, topOnes:8, subTens:3, subOnes:y, result,
-    text:`${x}8 - 3${y} = ${result} (top blank = ${x}, bottom blank = ${y})`};
+  return {type:"missing_digit_sub", topTens:x, topOnes:8, subTens:3, subOnes:y, result};
 }
+function missingDigitAnswerText(q, lang){
+  return lang==='zh'
+    ? `${q.topTens}8 - 3${q.subOnes} = ${q.result}（上格填${q.topTens}，下格填${q.subOnes}）`
+    : `${q.topTens}8 - 3${q.subOnes} = ${q.result} (top blank = ${q.topTens}, bottom blank = ${q.subOnes})`;
+}
+
+const WP_NAMES = [
+  {en:'Tom', zh:'小明'}, {en:'Mary', zh:'小美'}, {en:'Peter', zh:'小華'}, {en:'Ann', zh:'小安'}
+];
 function genWordProblem(easy){
-  const name = ["Tom","Mary","Peter","Ann"][randInt(0,3)];
-  const kind = ["add_stickers","add_pencils","sub_sweets"][randInt(0,2)];
-  let a,b,text,answer;
+  const name = WP_NAMES[randInt(0,3)];
+  let kind, a, b, answer;
   if(easy){
-    if(kind==="sub_sweets"){ a=randInt(5,9); b=randInt(1,a); text=`${name} has ${a} sweets. ${name} eats ${b} of them. How many sweets are left?`; answer=a-b; }
-    else { a=randInt(2,5); b=randInt(2,9-a); text=`${name} has ${a} stickers. ${name} buys ${b} more stickers. How many stickers does ${name} have now?`; answer=a+b; }
-    return {type:"word_problem", text, answer:String(answer)};
+    kind = ["add_stickers","sub_sweets"][randInt(0,1)];
+    if(kind==="sub_sweets"){ a=randInt(5,9); b=randInt(1,a); answer=a-b; }
+    else { a=randInt(2,5); b=randInt(2,9-a); answer=a+b; }
+  } else {
+    kind = ["add_stickers","add_pencils","sub_sweets"][randInt(0,2)];
+    if(kind==="add_stickers"){ a=randInt(20,60); b=randInt(10,40); answer=a+b; }
+    else if(kind==="add_pencils"){ a=randInt(20,60); b=randInt(10,40); answer=a+b; }
+    else { a=randInt(30,70); b=randInt(10,a-5); answer=a-b; }
   }
-  if(kind==="add_stickers"){ a=randInt(20,60); b=randInt(10,40); text=`${name} has ${a} stickers. ${name} buys ${b} more stickers. How many stickers does ${name} have now?`; answer=a+b; }
-  else if(kind==="add_pencils"){ a=randInt(20,60); b=randInt(10,40); text=`A shop sold ${a} pencils yesterday. It sold ${b} more pencils today. How many pencils were sold in total?`; answer=a+b; }
-  else { a=randInt(30,70); b=randInt(10,a-5); text=`${name} has ${a} sweets. ${name} eats ${b} of them. How many sweets are left?`; answer=a-b; }
-  return {type:"word_problem", text, answer:String(answer)};
+  return {type:"word_problem", kind, name, a, b, answer:String(answer)};
 }
+function wordProblemText(q, lang){
+  const name = lang==='zh' ? q.name.zh : q.name.en;
+  if(lang==='zh'){
+    if(q.kind==='sub_sweets') return `${name}有${q.a}粒糖果，${name}食咗${q.b}粒，還有多少粒糖果？`;
+    if(q.kind==='add_pencils') return `一間文具店昨天賣出${q.a}枝鉛筆，今天多賣了${q.b}枝，共賣出多少枝鉛筆？`;
+    return `${name}有${q.a}張貼紙，${name}再買${q.b}張，現在有多少張貼紙？`;
+  }
+  if(q.kind==='sub_sweets') return `${name} has ${q.a} sweets. ${name} eats ${q.b} of them. How many sweets are left?`;
+  if(q.kind==='add_pencils') return `A shop sold ${q.a} pencils yesterday. It sold ${q.b} more pencils today. How many pencils were sold in total?`;
+  return `${name} has ${q.a} stickers. ${name} buys ${q.b} more stickers. How many stickers does ${name} have now?`;
+}
+
+const STR = {
+  en: {
+    paperTitle: 'Primary 1 Maths Practice', reviewTitle: 'Review Worksheet',
+    sec1: '(1) Work out the answers.', sec2: '(2) Fill in the missing digits.', sec3: '(3) Word problem.',
+    reviewNotice: 'Review section — questions are deliberately easier so your child masters the basics before moving on.',
+    footnote: 'Print this page, have your child complete it on paper, then tap "View answers" to check their work.',
+    langBtnLabel: '中文', viewAnswers: 'View answers', hideAnswers: 'Hide answers',
+  },
+  zh: {
+    paperTitle: '小一數學練習', reviewTitle: '重點溫習卷',
+    sec1: '（一）計一計', sec2: '（二）填上缺少的數字', sec3: '（三）應用題',
+    reviewNotice: '重點溫習部份 — 題目特意調淺，等小朋友先掌握基礎，再逐步加深。',
+    footnote: '請列印這頁，讓小朋友在紙上完成，然後按「查看答案」核對。',
+    langBtnLabel: 'English', viewAnswers: '查看答案', hideAnswers: '隱藏答案',
+  },
+};
 
 // weakTopics: array of 'add' | 'sub' | 'missing' | 'word' detected from the
 // AI's free-text weak-area labels (see matchWeakTopics below) -- when
@@ -203,13 +245,21 @@ function matchWeakTopics(weakAreasParam){
   return topics;
 }
 
-function renderSheet(worksheetId, questions, isReview){
+// Language is purely a rendering choice over already-generated question
+// data (see the gen*/​*Text functions above) -- renderSheet never touches
+// randInt again, so toggling language can never change any answer.
+let currentWorksheetId = null, currentQuestions = null, currentIsReview = false, currentLang = 'en';
+
+function renderSheet(){
+  const worksheetId = currentWorksheetId, questions = currentQuestions, isReview = currentIsReview, lang = currentLang;
+  const T = STR[lang];
   let n = 1;
   const s1 = [], s2 = [], s3 = [], answers = [];
   questions.forEach(q=>{
     if(q.type==="equation"){
-      s1.push(`<div class="q"><div class="q-text"><span class="q-num">${n}.</span> ${q.text}</div><div class="ans-line"><span class="ans-value">${q.answer}</span></div></div>`);
-      answers.push(`${q.text} <b>${q.answer}</b>`);
+      const text = equationText(q);
+      s1.push(`<div class="q"><div class="q-text"><span class="q-num">${n}.</span> ${text}</div><div class="ans-line"><span class="ans-value">${q.answer}</span></div></div>`);
+      answers.push(`${text} ${q.answer}`);
       n++;
     }
   });
@@ -222,28 +272,29 @@ function renderSheet(worksheetId, questions, isReview){
           <div class="line"></div>
           <div class="row result">${String(q.result).padStart(2,'0').split('').map(d=>`<span class="digit">${d}</span>`).join('')}</div>
         </div></div>`);
-      answers.push(q.text);
+      answers.push(missingDigitAnswerText(q, lang));
       n++;
     }
   });
   questions.forEach(q=>{
     if(q.type==="word_problem"){
-      s3.push(`<div class="q wide"><div class="q-text"><span class="q-num">${n}.</span> ${q.text}</div><div class="ans-line wide"><span class="ans-value">${q.answer}</span></div></div>`);
-      answers.push(`<b>${q.answer}</b>`);
+      const text = wordProblemText(q, lang);
+      s3.push(`<div class="q wide"><div class="q-text"><span class="q-num">${n}.</span> ${text}</div><div class="ans-line wide"><span class="ans-value">${q.answer}</span></div></div>`);
+      answers.push(`${text} ${q.answer}`);
       n++;
     }
   });
 
-  const reviewNotice = isReview ? `<div class="review-notice">重點溫習部份 — 題目特意調淺，等小朋友先掌握基礎，再逐步加深。</div>` : '';
+  const reviewNotice = isReview ? `<div class="review-notice">${T.reviewNotice}</div>` : '';
   document.getElementById('sheet').innerHTML = `
     <div class="paper-brand">Little Steps <span class="heart">♥</span></div>
-    <div class="paper-title">${isReview ? '重點溫習卷' : 'Primary 1 Maths Practice'}</div>
+    <div class="paper-title">${isReview ? T.reviewTitle : T.paperTitle}</div>
     <div class="paper-sub">WORKSHEET ${worksheetId}</div>
     ${reviewNotice}
-    ${s1.length ? `<div class="section-title">(1) Work out the answers.</div><div class="section1">${s1.join('')}</div>` : ''}
-    ${s2.length ? `<div class="section-title">(2) Fill in the missing digits.</div><div class="section2-grid">${s2.join('')}</div>` : ''}
-    ${s3.length ? `<div class="section-title">(3) Word problem.</div><div class="section3">${s3.join('')}</div>` : ''}
-    <div class="footnote">Print this page, have your child complete it on paper, then tap "查看答案" to check their work.
+    ${s1.length ? `<div class="section-title">${T.sec1}</div><div class="section1">${s1.join('')}</div>` : ''}
+    ${s2.length ? `<div class="section-title">${T.sec2}</div><div class="section2-grid">${s2.join('')}</div>` : ''}
+    ${s3.length ? `<div class="section-title">${T.sec3}</div><div class="section3">${s3.join('')}</div>` : ''}
+    <div class="footnote">${T.footnote}
       <div class="paper-credit">Little Steps · hk-maths.violin-kwai.workers.dev · WORKSHEET ${worksheetId}</div>
     </div>
   `;
@@ -259,15 +310,14 @@ function renderSheet(worksheetId, questions, isReview){
   // answer key recoverable by its printed ID, not just whichever was
   // generated most recently.
   try {
-    const plainAnswers = answers.map(a => a.replace(/<[^>]+>/g, ''));
     localStorage.setItem('hk_maths_answer_key', JSON.stringify({
       worksheetId,
-      answers: plainAnswers,
+      answers,
       savedAt: Date.now()
     }));
     const bankKey = 'hk_maths_worksheet_bank';
     const bank = JSON.parse(localStorage.getItem(bankKey) || '[]');
-    bank.unshift({ worksheetId, answers: plainAnswers, savedAt: Date.now() });
+    bank.unshift({ worksheetId, answers, savedAt: Date.now() });
     localStorage.setItem(bankKey, JSON.stringify(bank.slice(0, 15)));
   } catch (e) {}
 }
@@ -275,17 +325,28 @@ function renderSheet(worksheetId, questions, isReview){
 const reviewTopics = matchWeakTopics(new URLSearchParams(location.search).get('review'));
 
 function newWorksheet(){
-  renderSheet(randId(6), generateWorksheet(reviewTopics), reviewTopics.length > 0);
-  document.getElementById('answerBtn').textContent = '查看答案';
+  currentWorksheetId = randId(6);
+  currentQuestions = generateWorksheet(reviewTopics);
+  currentIsReview = reviewTopics.length > 0;
+  renderSheet();
+  document.getElementById('answerBtn').textContent = STR[currentLang].viewAnswers;
 }
 
 document.getElementById('genBtn').onclick = newWorksheet;
 document.getElementById('printBtn').onclick = () => window.print();
+document.getElementById('langBtn').onclick = () => {
+  currentLang = currentLang === 'en' ? 'zh' : 'en';
+  renderSheet();
+  document.getElementById('langBtn').textContent = STR[currentLang].langBtnLabel;
+  const sheet = document.getElementById('sheet');
+  const showing = sheet.classList.contains('show-answers');
+  document.getElementById('answerBtn').textContent = showing ? STR[currentLang].hideAnswers : STR[currentLang].viewAnswers;
+};
 document.getElementById('answerBtn').onclick = () => {
   const sheet = document.getElementById('sheet');
   const btn = document.getElementById('answerBtn');
   const showing = sheet.classList.toggle('show-answers');
-  btn.textContent = showing ? '隱藏答案' : '查看答案';
+  btn.textContent = showing ? STR[currentLang].hideAnswers : STR[currentLang].viewAnswers;
 };
 
 newWorksheet();
