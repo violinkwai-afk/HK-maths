@@ -145,16 +145,16 @@
       </a>
     </div>
 
-    <div class="section">
+    <div class="section" id="recentSection" hidden>
       <div class="section-title"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="9" stroke-width="2.8"/><path d="M12 7v5l3.5 2" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg> 最近使用<span class="chev">›</span></div>
-      <div class="recent">
+      <a class="recent" href="analysis.html">
         <div class="recent-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M7 3.5h7l3 3v14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z" stroke-width="2.8" stroke-linejoin="round"/><path d="M14 3.5v3h3" stroke-width="2.8" stroke-linejoin="round"/></svg></div>
         <div>
-          <div class="recent-title">數學 · 小二</div>
-          <div class="recent-sub">上次上載：3分鐘前</div>
+          <div class="recent-title" id="recentTitle">數學批改結果</div>
+          <div class="recent-sub" id="recentSub"></div>
         </div>
         <div class="pill">查看結果</div>
-      </div>
+      </a>
     </div>
 
     <div class="section">
@@ -180,5 +180,25 @@
 
     <p class="footnote">這是一個獨立練習工具，與任何學校或教育局皆無關係。</p>
   </div>
+
+  <script>
+    function relativeTime(ts) {
+      const diffMin = Math.round((Date.now() - ts) / 60000);
+      if (diffMin < 1) return '剛剛';
+      if (diffMin < 60) return `${diffMin} 分鐘前`;
+      const diffHr = Math.round(diffMin / 60);
+      if (diffHr < 24) return `${diffHr} 小時前`;
+      return `${Math.round(diffHr / 24)} 日前`;
+    }
+    try {
+      const history = JSON.parse(localStorage.getItem('hk_maths_grading_history') || '[]');
+      if (history.length) {
+        const latest = history[0];
+        document.getElementById('recentTitle').textContent = `批改結果：${latest.score || ''}`;
+        document.getElementById('recentSub').textContent = `上次批改：${relativeTime(latest.date)}`;
+        document.getElementById('recentSection').hidden = false;
+      }
+    } catch (e) {}
+  </script>
 </body>
 </html>
