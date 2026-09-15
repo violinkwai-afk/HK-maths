@@ -27,6 +27,7 @@
   #genBtn{background:var(--pink); color:#fff;}
   #printBtn{background:var(--yellow); color:var(--ink);}
   #answerBtn{background:#fff; color:var(--ink); border:1px solid #ccc;}
+  #langBtn{background:var(--pink-soft); color:var(--pink-ink);}
 
   .sheet{background:#fff; padding:28px 26px; box-shadow:0 2px 14px rgba(0,0,0,0.1); font-size:14px; line-height:1.65;}
   .sheet-header{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;}
@@ -88,22 +89,39 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Short+Stack&display=swap" rel="stylesheet">
 
 <div class="wrap">
-  <a class="back no-print" href="index.html">
+  <a class="back no-print" href="index.html" id="backLink">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M15 5l-7 7 7 7" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
-    返回首頁
+    <span id="backLabel">返回首頁</span>
   </a>
   <div class="toolbar no-print">
     <button id="genBtn">重新出卷</button>
     <button id="printBtn">列印 / 儲存為 PDF</button>
     <button id="answerBtn">查看答案</button>
+    <button id="langBtn">English</button>
   </div>
   <div class="sheet" id="sheet"></div>
 </div>
 
 <script>
-function randInt(a,b){ return a + Math.floor(Math.random()*(b-a+1)); }
-function randId(n){ const c="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; let s=""; for(let i=0;i<n;i++) s+=c[Math.floor(Math.random()*c.length)]; return s; }
-function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+// Seeded PRNG so re-rendering with the SAME seed (e.g. after a language
+// toggle) always produces the exact same random values -- switching
+// language can never change a question's numbers or its answer.
+function mulberry32(seed){
+  return function(){
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+let _rnd = mulberry32(1);
+function seedRandom(s){ _rnd = mulberry32(s); }
+function randInt(a,b){ return a + Math.floor(_rnd()*(b-a+1)); }
+function randId(n){ const c="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"; let s=""; for(let i=0;i<n;i++) s+=c[Math.floor(_rnd()*c.length)]; return s; }
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(_rnd()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+let currentLang = 'zh';
+function T(zh, en){ return currentLang==='zh' ? zh : en; }
 
 // Hand-drawn icons (Little Steps palette) replacing emoji everywhere on this
 // sheet -- prints cleanly in black & white and carries no copyright risk.
@@ -134,62 +152,81 @@ function buildPlan(answers){
 
   // 1) position vocabulary with a row of 5 distinct candies
   const items1 = [ICON3.candy, ICON3.lollipop, ICON3.chocolate, ICON3.dango, ICON3.donut];
-  const posLabels = ['最左邊','左數第二','正中間','右數第二','最右邊'];
   const q1a_idx = randInt(0,4);
   let q1b_idx = randInt(0,4);
   while(q1b_idx === q1a_idx) q1b_idx = randInt(0,4);
-  const dir1 = q1a_idx < q1b_idx ? '左' : '右';
-  const q1 = `<div class="q">1. 按照下圖回答問題。 <span style="font-size:12px;color:#666;">(共10分)</span>
+  const aIsLeftOfB = q1a_idx < q1b_idx;
+  const q1 = currentLang==='zh' ? `<div class="q">1. 按照下圖回答問題。 <span style="font-size:12px;color:#666;">(共10分)</span>
     <div class="icon-row">${items1.join(' ')}</div>
-    <div class="q-sub">(a) ${items1[q1a_idx]} 在 ${items1[q1b_idx]} 的<span class="fillline">${dir1}</span>方。</div>
+    <div class="q-sub">(a) ${items1[q1a_idx]} 在 ${items1[q1b_idx]} 的<span class="fillline">${aIsLeftOfB?'左':'右'}</span>方。</div>
     <div class="q-sub">(b) ${items1[2]} 是排行第<span class="fillline">3</span>個（由左至右）。</div>
-    <div class="q-sub">(c) ${items1[0]} 和 ${items1[4]} 之間，共有<span class="fillline">3</span>件糖果。</div></div>`;
-  push(`(a)${dir1} (b)3 (c)3`);
+    <div class="q-sub">(c) ${items1[0]} 和 ${items1[4]} 之間，共有<span class="fillline">3</span>件糖果。</div></div>`
+  : `<div class="q">1. Look at the picture below and answer the questions. <span style="font-size:12px;color:#666;">(10 marks)</span>
+    <div class="icon-row">${items1.join(' ')}</div>
+    <div class="q-sub">(a) The 1st item is to the <span class="fillline">${aIsLeftOfB?'left':'right'}</span> of the 2nd item shown.</div>
+    <div class="q-sub">(b) The middle item is number <span class="fillline">3</span> counting from the left.</div>
+    <div class="q-sub">(c) Between the 1st and 5th items, there are <span class="fillline">3</span> sweets.</div></div>`;
+  push(`(a)${T(aIsLeftOfB?'左':'右', aIsLeftOfB?'left':'right')} (b)3 (c)3`);
 
   // 2) traffic-style position with 4 vehicles + a plane "above"
   const cars = [ICON3.truck, ICON3.car, ICON3.suv, ICON3.taxi];
   const carPos = shuffle([1,2,3,4]);
   const idxOf = (num) => carPos.indexOf(num);
-  const front = (a,b) => idxOf(a) < idxOf(b) ? '前' : '後';
-  const q2 = `<div class="q">2. 按照下圖回答問題。 <span style="font-size:12px;color:#666;">(共10分)</span>
-    <div class="icon-scene"><span class="scene-item">${ICON3.plane(0,'#f6c453')}<span class="scene-label">&nbsp;</span></span> ${carPos.map(num=>`<span class="scene-item">${cars[num-1]}<span class="scene-label">${num}號</span></span>`).join('')}</div>
-    <div class="q-sub">(a) ${carPos[0]}號車在${carPos[carPos.length-1]}號車的<span class="fillline">${front(carPos[0],carPos[carPos.length-1])}</span>方。</div>
+  const firstInFront = idxOf(carPos[0]) < idxOf(carPos[carPos.length-1]);
+  const lastInFront = idxOf(carPos[carPos.length-1]) < idxOf(carPos[0]);
+  const sceneRow = `<div class="icon-scene"><span class="scene-item">${ICON3.plane(0,'#f6c453')}<span class="scene-label">&nbsp;</span></span> ${carPos.map(num=>`<span class="scene-item">${cars[num-1]}<span class="scene-label">${num}${T('號','')}</span></span>`).join('')}</div>`;
+  const q2 = currentLang==='zh' ? `<div class="q">2. 按照下圖回答問題。 <span style="font-size:12px;color:#666;">(共10分)</span>
+    ${sceneRow}
+    <div class="q-sub">(a) ${carPos[0]}號車在${carPos[carPos.length-1]}號車的<span class="fillline">${firstInFront?'前':'後'}</span>方。</div>
     <div class="q-sub">(b) 飛機在所有車的<span class="fillline">上</span>方。</div>
-    <div class="q-sub">(c) ${carPos[carPos.length-1]}號車在${carPos[0]}號車的<span class="fillline">${front(carPos[carPos.length-1],carPos[0])}</span>方。</div></div>`;
-  push(`(a)${front(carPos[0],carPos[carPos.length-1])} (b)上 (c)${front(carPos[carPos.length-1],carPos[0])}`);
+    <div class="q-sub">(c) ${carPos[carPos.length-1]}號車在${carPos[0]}號車的<span class="fillline">${lastInFront?'前':'後'}</span>方。</div></div>`
+  : `<div class="q">2. Look at the picture below and answer the questions. <span style="font-size:12px;color:#666;">(10 marks)</span>
+    ${sceneRow}
+    <div class="q-sub">(a) Car ${carPos[0]} is in <span class="fillline">${firstInFront?'front of':'behind'}</span> car ${carPos[carPos.length-1]}.</div>
+    <div class="q-sub">(b) The plane is <span class="fillline">above</span> all the cars.</div>
+    <div class="q-sub">(c) Car ${carPos[carPos.length-1]} is in <span class="fillline">${lastInFront?'front of':'behind'}</span> car ${carPos[0]}.</div></div>`;
+  push(`(a)${T(firstInFront?'前':'後', firstInFront?'front':'behind')} (b)${T('上','above')} (c)${T(lastInFront?'前':'後', lastInFront?'front':'behind')}`);
 
   // 3) counting scattered icon clusters
   const starCount = randInt(9,13), circleCount = randInt(6,10), arrowCount = randInt(12,16), heartCount = randInt(10,14);
-  const q3 = `<div class="q">3. 數一數下列各種圖案，然後回答問題。 <span style="font-size:12px;color:#666;">(共10分)</span>
+  const q3 = currentLang==='zh' ? `<div class="q">3. 數一數下列各種圖案，然後回答問題。 <span style="font-size:12px;color:#666;">(共10分)</span>
     <div class="icon-row">${Array(starCount).fill(ICON3.star).join('')}</div>
     <div class="icon-row">${Array(circleCount).fill(ICON3.circle).join('')}</div>
     <div class="icon-row">${Array(arrowCount).fill(ICON3.arrow).join('')}</div>
     <div class="icon-row">${Array(heartCount).fill(ICON3.heart).join('')}</div>
     <div class="q-sub">(a) ${ICON3.star}有${starCount}顆，比${ICON3.circle}少<span class="fillline">${starCount-circleCount}</span>個。</div>
     <div class="q-sub">(b) ${ICON3.arrow}有${arrowCount}個，比${ICON3.star}（<span class="choice"><span class="${arrowCount>starCount?'correct':''}">多</span><span class="${arrowCount<starCount?'correct':''}">少</span></span>）<span class="fillline">${Math.abs(arrowCount-starCount)}</span>個。</div>
-    <div class="q-sub">(c) ${ICON3.circle}有${circleCount}個，要加多<span class="fillline">${heartCount-circleCount}</span>個才能跟${ICON3.heart}的數量一樣。</div></div>`;
-  push(`(a)${starCount-circleCount} (b)${arrowCount>starCount?'多':'少'} ${Math.abs(arrowCount-starCount)} (c)${heartCount-circleCount}`);
+    <div class="q-sub">(c) ${ICON3.circle}有${circleCount}個，要加多<span class="fillline">${heartCount-circleCount}</span>個才能跟${ICON3.heart}的數量一樣。</div></div>`
+  : `<div class="q">3. Count each kind of shape below, then answer the questions. <span style="font-size:12px;color:#666;">(10 marks)</span>
+    <div class="icon-row">${Array(starCount).fill(ICON3.star).join('')}</div>
+    <div class="icon-row">${Array(circleCount).fill(ICON3.circle).join('')}</div>
+    <div class="icon-row">${Array(arrowCount).fill(ICON3.arrow).join('')}</div>
+    <div class="icon-row">${Array(heartCount).fill(ICON3.heart).join('')}</div>
+    <div class="q-sub">(a) There are ${starCount} ${ICON3.star}, which is <span class="fillline">${starCount-circleCount}</span> fewer than the ${ICON3.circle}.</div>
+    <div class="q-sub">(b) There are ${arrowCount} ${ICON3.arrow}, which is (<span class="choice"><span class="${arrowCount>starCount?'correct':''}">more</span><span class="${arrowCount<starCount?'correct':''}">fewer</span></span>) than the ${ICON3.star} by <span class="fillline">${Math.abs(arrowCount-starCount)}</span>.</div>
+    <div class="q-sub">(c) There are ${circleCount} ${ICON3.circle} -- <span class="fillline">${heartCount-circleCount}</span> more are needed to match the number of ${ICON3.heart}.</div></div>`;
+  push(`(a)${starCount-circleCount} (b)${T(arrowCount>starCount?'多':'少', arrowCount>starCount?'more':'fewer')} ${Math.abs(arrowCount-starCount)} (c)${heartCount-circleCount}`);
 
   // 4) descending fill table
   const start4 = randInt(15,25), step4 = -1;
   const vals4 = Array.from({length:8},(_, i)=>start4+step4*i);
   const given4 = new Set(shuffle([0,1,2,3,4,5,6,7]).slice(0,2));
-  const q4 = `<div class="q">4. 以倒數方式填寫下列空格。 <span style="font-size:12px;color:#666;">(2分)</span>
+  const q4 = `<div class="q">4. ${T('以倒數方式填寫下列空格。','Fill in the blanks below, counting backwards.')} <span style="font-size:12px;color:#666;">${T('(2分)','(2 marks)')}</span>
     <table class="seqtable"><tr>${vals4.map((v,i)=>given4.has(i)?`<td>${v}</td>`:`<td><span class="fillline">${v}</span></td>`).join('')}</tr></table></div>`;
   push(vals4.join(','));
 
   // 5) direction identification x2
   function seqDirTable(){
-    const dir = Math.random()<0.5 ? 1 : -1;
-    const start = dir>0 ? randInt(5,15) : randInt(20,30);
-    const vals = Array.from({length:8},(_, i)=>start+dir*i);
+    const dirUp = _rnd()<0.5;
+    const start = dirUp ? randInt(5,15) : randInt(20,30);
+    const vals = Array.from({length:8},(_, i)=>start+(dirUp?1:-1)*i);
     const given = new Set(shuffle([0,1,2,3,4,5,6,7]).slice(0,2));
     const html = `<table class="seqtable"><tr>${vals.map((v,i)=>given.has(i)?`<td>${v}</td>`:`<td><span class="fillline">${v}</span></td>`).join('')}</tr></table>
-      <div class="q-sub">這是（<span class="choice"><span class="${dir>0?'correct':''}">順數</span><span class="${dir<0?'correct':''}">倒數</span></span>）。</div>`;
-    answers.push(`${n}) ${vals.join(',')}；${dir>0?'順數':'倒數'}`); n++;
+      <div class="q-sub">${T('這是（','This is (')}<span class="choice"><span class="${dirUp?'correct':''}">${T('順數','ascending')}</span><span class="${!dirUp?'correct':''}">${T('倒數','descending')}</span></span>${T('）。','.)')}</div>`;
+    answers.push(`${n}) ${vals.join(',')}；${T(dirUp?'順數':'倒數', dirUp?'ascending':'descending')}`); n++;
     return html;
   }
-  const q5 = `<div class="q">5. 填寫以下空格，並判斷整列數字屬於順數還是倒數。
+  const q5 = `<div class="q">5. ${T('填寫以下空格，並判斷整列數字屬於順數還是倒數。','Fill in the blanks below and decide whether each row is ascending or descending.')}
     <div class="q-sub">(a)${seqDirTable()}</div>
     <div class="q-sub">(b)${seqDirTable()}</div></div>`;
 
@@ -200,25 +237,33 @@ function buildPlan(answers){
     const items = shuffle([...Array(count).fill(targetIcon), distractorIcon]);
     const isOdd = count % 2 === 1;
     const html = `<div class="icon-row">${items.join(' ')}</div>
-      <div class="q-sub">${targetIcon}的數量是（<span class="choice"><span class="${isOdd?'correct':''}">單數</span><span class="${!isOdd?'correct':''}">雙數</span></span>）</div>`;
-    answers.push(`${n}) ${count} (${isOdd?'單數':'雙數'})`); n++;
+      <div class="q-sub">${targetIcon}${T('的數量是（','count is (')}<span class="choice"><span class="${isOdd?'correct':''}">${T('單數','odd')}</span><span class="${!isOdd?'correct':''}">${T('雙數','even')}</span></span>${T('）','')}</div>`;
+    answers.push(`${n}) ${count} (${T(isOdd?'單數':'雙數', isOdd?'odd':'even')})`); n++;
     return html;
   }
-  const q6 = `<div class="q">6. 數出下列圖案的數量，然後圈出正確答案。 <span style="font-size:12px;color:#666;">(6分)</span>
+  const q6 = `<div class="q">6. ${T('數出下列圖案的數量，然後圈出正確答案。','Count how many of each shape below, then circle the correct answer.')} <span style="font-size:12px;color:#666;">${T('(6分)','(6 marks)')}</span>
     <div class="q-sub">(a)${oddEvenRow(ICON3.star,ICON3.heart, randInt(5,9))}</div>
     <div class="q-sub">(b)${oddEvenRow(ICON3.arrow,'⬜', randInt(6,10))}</div>
     <div class="q-sub">(c)${oddEvenRow('△','▲', randInt(7,11))}</div></div>`;
 
   // 7) constrained drawing (open-ended, non-unique answer)
   const drawn7a = randInt(2,5), limit7a = 15;
-  const q7 = `<div class="q">7. 按題目指示畫出圖案。 <span style="font-size:12px;color:#666;">(4分)</span>
+  const q7 = currentLang==='zh' ? `<div class="q">7. 按題目指示畫出圖案。 <span style="font-size:12px;color:#666;">(4分)</span>
     <div class="q-sub">(a) 在方格內已畫上${drawn7a}個◯，請再畫上多於1個◯，使方格中的◯總數不多於${limit7a}個，而總數是雙數。
       <div class="icon-row">${'○ '.repeat(drawn7a)}</div>
     </div>
     <div class="q-sub">(b) 請畫上多於1個△，使總數不多於18個，而總數是單數。
       <div class="icon-row">&nbsp;</div>
+    </div></div>`
+  : `<div class="q">7. Follow the instructions and draw the shapes. <span style="font-size:12px;color:#666;">(4 marks)</span>
+    <div class="q-sub">(a) ${drawn7a} ◯ are already drawn in the box. Draw more than 1 more ◯ so the total is no more than ${limit7a} and is an even number.
+      <div class="icon-row">${'○ '.repeat(drawn7a)}</div>
+    </div>
+    <div class="q-sub">(b) Draw more than 1 △, so the total is no more than 18 and is an odd number.
+      <div class="icon-row">&nbsp;</div>
     </div></div>`;
-  push(`(a)已有${drawn7a}個，答案不唯一，只要總數為雙數且不多於${limit7a}個即可 (b)答案不唯一，只要總數為單數且不多於18個即可`);
+  push(T(`(a)已有${drawn7a}個，答案不唯一，只要總數為雙數且不多於${limit7a}個即可 (b)答案不唯一，只要總數為單數且不多於18個即可`,
+        `(a)${drawn7a} already drawn -- any answer works as long as the total is even and no more than ${limit7a} (b)any answer works as long as the total is odd and no more than 18`));
 
   const page2 = q6+q7;
 
@@ -228,17 +273,24 @@ function buildPlan(answers){
   const row8 = Math.floor(markedIdx/3)+1, col8 = markedIdx%3+1;
   const markedIcon = gridIcons[markedIdx];
   const dupIdxs = gridIcons.map((ic,i)=>ic===markedIcon?i:-1).filter(i=>i>=0);
-  const q8 = `<div class="q">8. 寫出事物的次序和數量。 <span style="font-size:12px;color:#666;">(14分)</span>
+  const posText = (i) => currentLang==='zh'
+    ? `第<span class="fillline">${Math.floor(i/3)+1}</span>行第<span class="fillline">${i%3+1}</span>個`
+    : `row <span class="fillline">${Math.floor(i/3)+1}</span>, column <span class="fillline">${i%3+1}</span>`;
+  const q8 = currentLang==='zh' ? `<div class="q">8. 寫出事物的次序和數量。 <span style="font-size:12px;color:#666;">(14分)</span>
     <div class="grid3">${gridIcons.map((ic,i)=>`<div class="cell${i===markedIdx?' marked':''}">${ic}</div>`).join('')}</div>
     <div class="q-sub">(a) 上圖共有<span class="fillline">9</span>件物件，有記號的是第<span class="fillline">${row8}</span>行第<span class="fillline">${col8}</span>個。</div>
-    <div class="q-sub">(b) 小明擁有一件圖中的 ${markedIcon}，他說的可能是${dupIdxs.map(i=>`第<span class="fillline">${Math.floor(i/3)+1}</span>行第<span class="fillline">${i%3+1}</span>個`).join(' 或 ')}。</div></div>`;
-  push(`(a)9, 第${row8}行第${col8}個 (b)${dupIdxs.map(i=>`第${Math.floor(i/3)+1}行第${i%3+1}個`).join('或')}`);
+    <div class="q-sub">(b) 小明擁有一件圖中的 ${markedIcon}，他說的可能是${dupIdxs.map(i=>posText(i)).join(' 或 ')}。</div></div>`
+  : `<div class="q">8. Write down the order and count of the items. <span style="font-size:12px;color:#666;">(14 marks)</span>
+    <div class="grid3">${gridIcons.map((ic,i)=>`<div class="cell${i===markedIdx?' marked':''}">${ic}</div>`).join('')}</div>
+    <div class="q-sub">(a) There are <span class="fillline">9</span> items above. The marked one is at row <span class="fillline">${row8}</span>, column <span class="fillline">${col8}</span>.</div>
+    <div class="q-sub">(b) Tom has one of the ${markedIcon} in the picture. It could be at ${dupIdxs.map(i=>posText(i)).join(' or ')}.</div></div>`;
+  push(`(a)9, ${T(`第${row8}行第${col8}個`, `row ${row8} col ${col8}`)} (b)${dupIdxs.map(i=>T(`第${Math.floor(i/3)+1}行第${i%3+1}個`, `row ${Math.floor(i/3)+1} col ${i%3+1}`)).join(T('或',' or '))}`);
 
   // 9) number bonds + split counting
   function bond(total, showLeft){
     const left = showLeft===null ? randInt(1,total-1) : showLeft;
     const right = total-left;
-    const givenLeft = Math.random()<0.5;
+    const givenLeft = _rnd()<0.5;
     answers.push(`${n}) ${total}=${left}+${right}`); n++;
     return `<div class="bond"><div class="bond-top">${total}</div>
       <svg class="bond-line" viewBox="0 0 60 20"><line x1="30" y1="0" x2="8" y2="20" stroke="#333"/><line x1="30" y1="0" x2="52" y2="20" stroke="#333"/></svg>
@@ -254,7 +306,7 @@ function buildPlan(answers){
     return html;
   }
   const bt1 = randInt(10,16), bt2 = randInt(15,19), bt3 = randInt(7,10);
-  const q9 = `<div class="q">9. 在適當位置填上答案。 <span style="font-size:12px;color:#666;">(16分)</span>
+  const q9 = `<div class="q">9. ${T('在適當位置填上答案。','Fill in the correct answers below.')} <span style="font-size:12px;color:#666;">${T('(16分)','(16 marks)')}</span>
     <div style="display:flex; flex-wrap:wrap;">${bond(bt1,null)}${bond(bt2,null)}${bond(bt3,null)}</div>
     <div class="q-sub">(f) ${splitRow('○', randInt(4,7), randInt(3,6))}</div>
     <div class="q-sub">(g) ${splitRow('△', randInt(2,4), randInt(6,10))}</div>
@@ -275,19 +327,32 @@ function buildPlan(answers){
   }
   const sizes = shuffle([randInt(20,30), randInt(38,50), randInt(58,72)]);
   const [s1,s2,s3] = sizes;
-  const cmpWord = (a,b) => a>b?'長':a<b?'短':'一樣';
-  const q10 = `<div class="q">10. 圈出正確答案。 <span style="font-size:12px;color:#666;">(10分)</span>
+  const isLonger = (a,b) => a>b;
+  const longestNum = [1,2,3][sizes.indexOf(Math.max(...sizes))];
+  const shortestNum = [1,2,3][sizes.indexOf(Math.min(...sizes))];
+  const q10 = currentLang==='zh' ? `<div class="q">10. 圈出正確答案。 <span style="font-size:12px;color:#666;">(10分)</span>
     <div class="icon-scene">
       <span class="scene-item">${carSVG(s1)}<span class="scene-label">1號</span></span>
       <span class="scene-item">${carSVG(s2)}<span class="scene-label">2號</span></span>
       <span class="scene-item">${carSVG(s3)}<span class="scene-label">3號</span></span>
     </div>
-    <div class="q-sub">(a) 1號車的車身比3號車（<span class="choice"><span class="${cmpWord(s1,s3)==='短'?'correct':''}">短</span><span class="${cmpWord(s1,s3)==='長'?'correct':''}">長</span></span>）。</div>
-    <div class="q-sub">(b) 3號車的車身比2號車（<span class="choice"><span class="${cmpWord(s3,s2)==='短'?'correct':''}">短</span><span class="${cmpWord(s3,s2)==='長'?'correct':''}">長</span></span>）。</div>
-    <div class="q-sub">(c) 2號車的車身比1號車（<span class="choice"><span class="${cmpWord(s2,s1)==='短'?'correct':''}">短</span><span class="${cmpWord(s2,s1)==='長'?'correct':''}">長</span></span>）。</div>
-    <div class="q-sub">(d) 車身最長的是（<span class="fillline">${[1,2,3][sizes.indexOf(Math.max(...sizes))]}</span>）號車。</div>
-    <div class="q-sub">(e) 車身最短的是（<span class="fillline">${[1,2,3][sizes.indexOf(Math.min(...sizes))]}</span>）號車。</div></div>`;
-  push(`(a)${cmpWord(s1,s3)} (b)${cmpWord(s3,s2)} (c)${cmpWord(s2,s1)} (d)${[1,2,3][sizes.indexOf(Math.max(...sizes))]}號 (e)${[1,2,3][sizes.indexOf(Math.min(...sizes))]}號`);
+    <div class="q-sub">(a) 1號車的車身比3號車（<span class="choice"><span class="${!isLonger(s1,s3)?'correct':''}">短</span><span class="${isLonger(s1,s3)?'correct':''}">長</span></span>）。</div>
+    <div class="q-sub">(b) 3號車的車身比2號車（<span class="choice"><span class="${!isLonger(s3,s2)?'correct':''}">短</span><span class="${isLonger(s3,s2)?'correct':''}">長</span></span>）。</div>
+    <div class="q-sub">(c) 2號車的車身比1號車（<span class="choice"><span class="${!isLonger(s2,s1)?'correct':''}">短</span><span class="${isLonger(s2,s1)?'correct':''}">長</span></span>）。</div>
+    <div class="q-sub">(d) 車身最長的是（<span class="fillline">${longestNum}</span>）號車。</div>
+    <div class="q-sub">(e) 車身最短的是（<span class="fillline">${shortestNum}</span>）號車。</div></div>`
+  : `<div class="q">10. Circle the correct answer. <span style="font-size:12px;color:#666;">(10 marks)</span>
+    <div class="icon-scene">
+      <span class="scene-item">${carSVG(s1)}<span class="scene-label">Car 1</span></span>
+      <span class="scene-item">${carSVG(s2)}<span class="scene-label">Car 2</span></span>
+      <span class="scene-item">${carSVG(s3)}<span class="scene-label">Car 3</span></span>
+    </div>
+    <div class="q-sub">(a) Car 1 is (<span class="choice"><span class="${!isLonger(s1,s3)?'correct':''}">shorter</span><span class="${isLonger(s1,s3)?'correct':''}">longer</span></span>) than car 3.</div>
+    <div class="q-sub">(b) Car 3 is (<span class="choice"><span class="${!isLonger(s3,s2)?'correct':''}">shorter</span><span class="${isLonger(s3,s2)?'correct':''}">longer</span></span>) than car 2.</div>
+    <div class="q-sub">(c) Car 2 is (<span class="choice"><span class="${!isLonger(s2,s1)?'correct':''}">shorter</span><span class="${isLonger(s2,s1)?'correct':''}">longer</span></span>) than car 1.</div>
+    <div class="q-sub">(d) The longest car is car (<span class="fillline">${longestNum}</span>).</div>
+    <div class="q-sub">(e) The shortest car is car (<span class="fillline">${shortestNum}</span>).</div></div>`;
+  push(`(a)${T(isLonger(s1,s3)?'長':'短', isLonger(s1,s3)?'longer':'shorter')} (b)${T(isLonger(s3,s2)?'長':'短', isLonger(s3,s2)?'longer':'shorter')} (c)${T(isLonger(s2,s1)?'長':'短', isLonger(s2,s1)?'longer':'shorter')} (d)${longestNum}${T('號','')} (e)${shortestNum}${T('號','')}`);
 
   // 11) three robots standing in a triangle formation + 4 marked spots.
   // All answers are derived from the ACTUAL drawn coordinates (real Euclidean
@@ -297,7 +362,7 @@ function buildPlan(answers){
     let robotRow = '', markRow = '';
     [1,2,3].forEach(num=>{
       const p = posOf[num];
-      robotRow += `<svg x="${p.x-9}" y="${p.y-24}" width="18" height="21" viewBox="0 0 32 38"><rect x="6" y="12" width="20" height="18" rx="3" fill="#fdedc7" stroke="#3a2b2e" stroke-width="1.8"/><circle cx="12" cy="20" r="2" fill="#3a2b2e"/><circle cx="20" cy="20" r="2" fill="#3a2b2e"/><line x1="16" y1="12" x2="16" y2="4" stroke="#3a2b2e" stroke-width="1.8"/><circle cx="16" cy="3" r="2.2" fill="#f28ba0" stroke="#3a2b2e" stroke-width="1.2"/></svg><text x="${p.x}" y="${p.y+14}" font-size="9.5" text-anchor="middle" fill="#c23f5b" font-weight="700">${num}號</text>`;
+      robotRow += `<svg x="${p.x-9}" y="${p.y-24}" width="18" height="21" viewBox="0 0 32 38"><rect x="6" y="12" width="20" height="18" rx="3" fill="#fdedc7" stroke="#3a2b2e" stroke-width="1.8"/><circle cx="12" cy="20" r="2" fill="#3a2b2e"/><circle cx="20" cy="20" r="2" fill="#3a2b2e"/><line x1="16" y1="12" x2="16" y2="4" stroke="#3a2b2e" stroke-width="1.8"/><circle cx="16" cy="3" r="2.2" fill="#f28ba0" stroke="#3a2b2e" stroke-width="1.2"/></svg><text x="${p.x}" y="${p.y+14}" font-size="9.5" text-anchor="middle" fill="#c23f5b" font-weight="700">${num}</text>`;
     });
     Object.entries(marks).forEach(([label,p])=>{
       markRow += `<circle cx="${p.x}" cy="${p.y}" r="3" fill="#f28ba0" stroke="#3a2b2e" stroke-width="1"/><text x="${p.x}" y="${p.y-6}" font-size="10" text-anchor="middle" fill="#c23f5b" font-weight="700">${label}</text>`;
@@ -306,9 +371,9 @@ function buildPlan(answers){
   }
   const topX = randInt(55,95);
   const V = { top:{x:topX,y:22}, left:{x:25,y:82}, right:{x:125,y:82} };
-  const swap = Math.random()<0.5;
+  const swap = _rnd()<0.5;
   const posOf = { 2: V.top, 1: swap?V.right:V.left, 3: swap?V.left:V.right };
-  const d12 = dist(posOf[1],posOf[2]), d23 = dist(posOf[2],posOf[3]), d13 = dist(posOf[1],posOf[3]);
+  const d12 = dist(posOf[1],posOf[2]), d23 = dist(posOf[2],posOf[3]);
   const nearestTo2 = d12 < d23 ? 1 : 3;
   const marks = {
     A: {x:(V.top.x+V.left.x)/2, y:(V.top.y+V.left.y)/2},
@@ -318,26 +383,41 @@ function buildPlan(answers){
   };
   const nearestMarkTo2 = Object.keys(marks).reduce((best,k) => dist(marks[k],posOf[2]) < dist(marks[best],posOf[2]) ? k : best, 'A');
   const markBetween2and3 = swap ? 'A' : 'B'; // midpoint of robot2(top) and whichever vertex robot3 occupies
-  const q11 = `<div class="q">11. 在適當位置填上答案。 <span style="font-size:12px;color:#666;">(10分)</span>
+  const q11 = currentLang==='zh' ? `<div class="q">11. 在適當位置填上答案。 <span style="font-size:12px;color:#666;">(10分)</span>
     <div class="shapes-row">${triangleSVG(posOf, marks)}</div>
     <div class="q-sub">(a) <span class="fillline">${nearestTo2}</span>號機械人與2號機械人的距離最近。</div>
     <div class="q-sub">(b) 3號機械人與1號機械人的距離最<span class="fillline">遠</span>。</div>
     <div class="q-sub">(c) 2號機械人與<span class="fillline">1</span>號機械人的距離比<span class="fillline">3</span>號機械人與2號機械人的距離${d12>d23?'遠':'近'}。</div>
     <div class="q-sub">(d) 在 A、B、C、D 四個位置中，距離2號機械人最近的是<span class="fillline">${nearestMarkTo2}</span>。</div>
-    <div class="q-sub">(e) 在2號和3號機械人之間的位置是<span class="fillline">${markBetween2and3}</span>。</div></div>`;
-  push(`(a)${nearestTo2}號 (b)遠 (c)${d12>d23?'遠':'近'} (d)${nearestMarkTo2} (e)${markBetween2and3}`);
+    <div class="q-sub">(e) 在2號和3號機械人之間的位置是<span class="fillline">${markBetween2and3}</span>。</div></div>`
+  : `<div class="q">11. Fill in the correct answers below. <span style="font-size:12px;color:#666;">(10 marks)</span>
+    <div class="shapes-row">${triangleSVG(posOf, marks)}</div>
+    <div class="q-sub">(a) Robot <span class="fillline">${nearestTo2}</span> is closest to robot 2.</div>
+    <div class="q-sub">(b) Robot 3 and robot 1 are the <span class="fillline">farthest</span> apart.</div>
+    <div class="q-sub">(c) The distance between robot 2 and robot <span class="fillline">1</span> is ${d12>d23?'farther':'nearer'} than between robot <span class="fillline">3</span> and robot 2.</div>
+    <div class="q-sub">(d) Of points A, B, C and D, the one closest to robot 2 is <span class="fillline">${nearestMarkTo2}</span>.</div>
+    <div class="q-sub">(e) The point between robot 2 and robot 3 is <span class="fillline">${markBetween2and3}</span>.</div></div>`;
+  push(`(a)${nearestTo2}${T('號','')} (b)${T('遠','farthest')} (c)${T(d12>d23?'遠':'近', d12>d23?'farther':'nearer')} (d)${nearestMarkTo2} (e)${markBetween2and3}`);
 
   const page4 = q10+q11;
 
   return { page1, page2, page3, page4 };
 }
 
-function renderPlan(worksheetId){
+let currentSeed = null;
+
+function renderPlan(){
+  seedRandom(currentSeed);
+  const worksheetId = randId(6);
   const answers = [];
   const { page1, page2, page3, page4 } = buildPlan(answers);
+  const footnote = T(
+    '請列印這頁，讓小朋友在紙上完成，然後按「查看答案」核對。',
+    'Print this page, have your child complete it on paper, then tap "Show Answers" to check their work.'
+  );
   document.getElementById('sheet').innerHTML = `
     <div class="sheet-header"><div class="sheet-brand">Little Steps ♥</div><div class="page-tag">1/4</div></div>
-    <div class="paper-title">小一上學期數學模擬卷</div>
+    <div class="paper-title">${T('小一上學期數學模擬卷','Primary 1 Term 1 Maths Mock Paper')}</div>
     ${page1}
     <div class="page-break"></div>
     <div class="sheet-header"><div class="sheet-brand">Little Steps ♥</div><div class="page-tag">2/4</div></div>
@@ -348,7 +428,7 @@ function renderPlan(worksheetId){
     <div class="page-break"></div>
     <div class="sheet-header"><div class="sheet-brand">Little Steps ♥</div><div class="page-tag">4/4</div></div>
     ${page4}
-    <div class="footnote">Print this page, have your child complete it on paper, then tap "查看答案" to check their work.
+    <div class="footnote">${footnote}
       <div class="paper-credit">Little Steps ♥ · hk-maths.violin-kwai.workers.dev · WORKSHEET ${worksheetId}</div>
     </div>
   `;
@@ -360,18 +440,47 @@ function renderPlan(worksheetId){
     localStorage.setItem(bankKey, JSON.stringify(bank.slice(0, 15)));
   } catch (e) {}
 }
-function newPlan(){
-  renderPlan(randId(6));
-  document.getElementById('answerBtn').textContent = '查看答案';
+
+function updateChrome(){
+  document.getElementById('backLabel').textContent = T('返回首頁','Back to Home');
+  document.getElementById('genBtn').textContent = T('重新出卷','New Worksheet');
+  document.getElementById('printBtn').textContent = T('列印 / 儲存為 PDF','Print / Save as PDF');
+  document.getElementById('langBtn').textContent = T('English','中文');
+  const sheet = document.getElementById('sheet');
+  const showing = sheet && sheet.classList.contains('show-answers');
+  document.getElementById('answerBtn').textContent = showing ? T('隱藏答案','Hide Answers') : T('查看答案','Show Answers');
 }
+
+function newPlan(){
+  currentSeed = (Date.now() ^ Math.floor(Math.random()*1e9)) >>> 0;
+  renderPlan();
+  document.getElementById('sheet').classList.remove('show-answers');
+  updateChrome();
+}
+
+const urlParams = new URLSearchParams(location.search);
+(function initLang(){
+  const urlLang = urlParams.get('lang');
+  let stored = null;
+  try { stored = localStorage.getItem('hk_maths_lang'); } catch(e){}
+  if (urlLang === 'en' || urlLang === 'zh') currentLang = urlLang;
+  else if (stored === 'en' || stored === 'zh') currentLang = stored;
+})();
+
 document.getElementById('genBtn').onclick = newPlan;
 document.getElementById('printBtn').onclick = () => window.print();
 document.getElementById('answerBtn').onclick = () => {
   const sheet = document.getElementById('sheet');
-  const btn = document.getElementById('answerBtn');
   const showing = sheet.classList.toggle('show-answers');
-  btn.textContent = showing ? '隱藏答案' : '查看答案';
+  document.getElementById('answerBtn').textContent = showing ? T('隱藏答案','Hide Answers') : T('查看答案','Show Answers');
 };
+document.getElementById('langBtn').onclick = () => {
+  currentLang = currentLang === 'zh' ? 'en' : 'zh';
+  try { localStorage.setItem('hk_maths_lang', currentLang); } catch(e){}
+  renderPlan();
+  updateChrome();
+};
+
 newPlan();
 </script>
 </body>
