@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Flash Card — Little Steps</title>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chiron+GoRound+TC:wght@400;500;700&family=Short+Stack&display=swap">
 <style>
   :root{
     --ink:#3a2b2e; --muted:#9c8288; --card:#ffffff;
@@ -21,32 +21,41 @@
   }
   .page{max-width:430px; margin:0 auto; padding:20px 20px 40px;}
   .back{display:inline-flex; align-items:center; gap:6px; color:var(--muted); text-decoration:none; font-size:.85rem; font-weight:700; margin-bottom:20px;}
-  h1{font-size:1.3rem; margin:0 0 4px; font-weight:800;}
+  h1{font-family:"Short Stack",cursive; font-size:1.8rem; margin:0 0 4px; font-weight:400; color:var(--pink-ink);}
   .sub{font-size:.85rem; color:var(--muted); margin:0 0 20px; line-height:1.55;}
 
   .picker{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px;}
   .picker button{
-    width:40px; height:40px; border-radius:12px; border:none; font-family:inherit;
-    font-weight:800; font-size:.95rem; background:var(--card); color:var(--ink);
-    box-shadow:var(--shadow); cursor:pointer;
+    width:42px; height:42px; border-radius:50%; border:none; font-family:inherit;
+    font-weight:800; font-size:1rem; background:var(--card); color:var(--ink);
+    box-shadow:var(--shadow); cursor:pointer; transition:transform .15s ease;
   }
-  .picker button.active{background:var(--pink); color:#ffffff;}
+  .picker button.active{background:var(--pink); color:#ffffff; transform:scale(1.12);}
 
   .card{
-    background:var(--card); border-radius:22px; padding:24px 20px; box-shadow:var(--shadow);
-    text-align:center; cursor:pointer; user-select:none;
+    background:var(--card); border-radius:28px; padding:28px 20px; box-shadow:var(--shadow);
+    text-align:center; cursor:pointer; user-select:none; position:relative; overflow:hidden;
+    transition:transform .12s ease;
   }
-  .frame{display:flex; flex-wrap:wrap; gap:8px; justify-content:center; margin:0 auto 18px; max-width:300px;}
+  .card:active{transform:scale(0.97);}
+  .card::before{
+    content:""; position:absolute; top:-40px; right:-40px; width:120px; height:120px;
+    border-radius:50%; background:var(--yellow-soft); z-index:0;
+  }
+  .frame{display:flex; flex-wrap:wrap; gap:9px; justify-content:center; margin:0 auto 20px; max-width:300px; position:relative; z-index:1;}
   .frame .cell{
-    width:36px; height:36px; border-radius:8px; border:2px solid var(--pink-ink);
+    width:38px; height:38px; border-radius:12px;
     display:flex; align-items:center; justify-content:center;
+    box-shadow:0 3px 0 rgba(0,0,0,0.08);
   }
-  .frame .cell.a{background:var(--pink); border-color:var(--pink);}
-  .frame .cell.b{background:var(--yellow); border-color:var(--yellow);}
+  .frame .cell.a{background:var(--pink);}
+  .frame .cell.b{background:var(--yellow);}
 
-  .equation{font-size:1.4rem; font-weight:800; font-variant-numeric:tabular-nums; min-height:2.2rem;}
-  .equation .hidden-part{color:var(--muted);}
-  .hint{font-size:.78rem; color:var(--muted); margin-top:10px;}
+  .equation{font-size:1.7rem; font-weight:800; font-variant-numeric:tabular-nums; position:relative; z-index:1;}
+  .equation .num-a{color:var(--pink-ink);}
+  .equation .num-b{color:#a9761c;}
+  .mascot{font-size:1.8rem; margin-top:8px; position:relative; z-index:1;}
+  .hint{font-size:.75rem; color:var(--muted); margin-top:10px; position:relative; z-index:1;}
 
   .nav{display:flex; justify-content:space-between; align-items:center; margin-top:20px;}
   .nav button{
@@ -66,14 +75,15 @@
       返回首頁
     </a>
     <h1>Flash Card</h1>
-    <p class="sub">數的分成與合成 —— 選一個數字，練習它可以拆成哪兩個數。</p>
+    <p class="sub">數的分成與合成 —— 選一個數字，輕觸卡片睇下一題。</p>
 
     <div class="picker" id="picker"></div>
 
     <div class="card" id="card">
       <div class="frame" id="frame"></div>
       <div class="equation" id="equation"></div>
-      <div class="hint" id="hint">輕觸卡片，查看答案</div>
+      <div class="mascot" id="mascot">😊</div>
+      <div class="hint">輕觸卡片，換下一題</div>
     </div>
 
     <div class="nav">
@@ -87,14 +97,14 @@
     const picker = document.getElementById('picker');
     const frame = document.getElementById('frame');
     const equation = document.getElementById('equation');
-    const hint = document.getElementById('hint');
+    const mascot = document.getElementById('mascot');
     const card = document.getElementById('card');
     const progress = document.getElementById('progress');
+    const faces = ['😊','🤗','😺','🌟','✨'];
 
     let target = 10;
     let splits = [];
     let index = 0;
-    let revealed = false;
 
     for (let n = 2; n <= 10; n++) {
       const btn = document.createElement('button');
@@ -114,7 +124,6 @@
       target = n;
       splits = buildSplits(n);
       index = 0;
-      revealed = false;
       Array.from(picker.children).forEach(b => b.classList.toggle('active', Number(b.dataset.n) === n));
       render();
     }
@@ -124,24 +133,19 @@
       frame.innerHTML = Array.from({ length: target }, (_, i) =>
         `<div class="cell ${i < a ? 'a' : 'b'}"></div>`
       ).join('');
-      equation.innerHTML = revealed
-        ? `${target} = ${a} + ${b}`
-        : `${target} = <span class="hidden-part">? + ?</span>`;
-      hint.textContent = revealed ? '輕觸卡片，返回提問' : '輕觸卡片，查看答案';
+      equation.innerHTML = `${target} = <span class="num-a">${a}</span> + <span class="num-b">${b}</span>`;
+      mascot.textContent = faces[Math.floor(Math.random() * faces.length)];
       progress.textContent = `${index + 1} / ${splits.length}`;
     }
 
-    card.addEventListener('click', () => { revealed = !revealed; render(); });
-    document.getElementById('prevBtn').addEventListener('click', () => {
-      index = (index - 1 + splits.length) % splits.length;
-      revealed = false;
+    function advance(delta) {
+      index = (index + delta + splits.length) % splits.length;
       render();
-    });
-    document.getElementById('nextBtn').addEventListener('click', () => {
-      index = (index + 1) % splits.length;
-      revealed = false;
-      render();
-    });
+    }
+
+    card.addEventListener('click', () => advance(1));
+    document.getElementById('prevBtn').addEventListener('click', () => advance(-1));
+    document.getElementById('nextBtn').addEventListener('click', () => advance(1));
 
     selectTarget(10);
   </script>
