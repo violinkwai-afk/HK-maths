@@ -80,14 +80,14 @@ ${answerKey}
         {
           role: "user",
           content: [
-            {
+            ...images.map((img) => ({
               type: "image",
               source: {
                 type: "base64",
-                media_type: mediaType || "image/jpeg",
-                data: image,
+                media_type: img.mediaType || "image/jpeg",
+                data: img.data,
               },
-            },
+            })),
             { type: "text", text: prompt },
           ],
         },
