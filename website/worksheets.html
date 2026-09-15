@@ -89,18 +89,13 @@
 
   <script>
     const cards = document.querySelectorAll('.card[data-base]');
-    // only generator.html has an English version today -- the others stay
-    // Chinese-only regardless of this choice, until we build EN for them too
-    const ENGLISH_READY = new Set(['generator.html']);
     function applyLang(lang){
       document.getElementById('langZh').classList.toggle('active', lang==='zh');
       document.getElementById('langEn').classList.toggle('active', lang==='en');
-      document.getElementById('langNote').textContent = lang==='en'
-        ? '（暫時得第1份卷有英文版，其餘3份卷會照樣顯示中文）'
-        : '';
+      document.getElementById('langNote').textContent = '';
       cards.forEach(a => {
         const base = a.dataset.base;
-        a.href = (lang==='en' && ENGLISH_READY.has(base)) ? `${base}?lang=en` : base;
+        a.href = lang==='en' ? `${base}?lang=en` : base;
       });
       try { localStorage.setItem('hk_maths_lang', lang); } catch(e){}
     }
