@@ -72,7 +72,7 @@ async function handleGrade(request, env) {
     return json({ error: "bad_request", message: "請求格式錯誤。" }, 400);
   }
 
-  let { image, images, mediaType, answerKey } = body;
+  let { image, images, mediaType, answerKey, expectedWorksheetId } = body;
   if (!images && image) images = [{ data: image, mediaType }];
   if (!images || !images.length || !answerKey) {
     return json({ error: "bad_request", message: "缺少相片或答案key。" }, 400);
@@ -88,6 +88,17 @@ async function handleGrade(request, env) {
   // Notes are kept intentionally terse (a few characters, correct answers get
   // none at all) -- verbose per-question explanations were the single
   // biggest driver of output-token cost on dense, many-page worksheets.
+  // Generator-made worksheets print "WORKSHEET <id>" near the top and again
+  // in the footer (deliberately at both ends of the page, so a casual photo
+  // that crops one end still catches the other). When the client is still
+  // using an auto-filled key as-is, it sends the ID it expects to see --
+  // this catches the silent-mismatch case where a parent photographs a
+  // *different* physical paper than the one that key was generated for,
+  // which would otherwise grade nonsense against the wrong answers with no
+  // indication anything was wrong.
+  const worksheetIdCheck = expectedWorksheetId ? `
+5. 呢份卷page頂或底應該印住"WORKSHEET ${expectedWorksheetId}"字樣。如果相片入面睇唔到呢個編號、或者編號同"${expectedWorksheetId}"唔一致（例如係完全唔同版面嘅卷），喺回覆嘅JSON最外層加一個 "worksheetMismatch": true，並且照常盡力批改。如果編號脗合或者睇唔清但版面明顯係同一類型嘅卷，"worksheetMismatch" 設為 false。` : '';
+
   const prompt = `你是一位細心的小學數學老師，正在批改學生完成的練習卷相片（共${images.length}頁，屬於同一份卷）。
 
 以下是這份練習卷的正確答案（按題號排列）：
@@ -106,7 +117,7 @@ ${answerKey}
   ],
   "score": "X / Y（Y為總題數，X為答對題數，包括未作答；只有字跡不清的題目不計入Y）",
   "weakAreas": ["按錯誤歸納的弱項，例如：加減混合運算次序、長除法"]
-}`;
+}${worksheetIdCheck}`;
 
   let parsed;
   const usage = { sonnet: null, opus: null };

@@ -241,7 +241,7 @@ function renderSheet(worksheetId, questions, isReview){
     ${s1.length ? `<div class="section-title">(1) Work out the answers.</div><div class="section1">${s1.join('')}</div>` : ''}
     ${s2.length ? `<div class="section-title">(2) Fill in the missing digits.</div><div class="section2-grid">${s2.join('')}</div>` : ''}
     ${s3.length ? `<div class="section-title">(3) Word problem.</div><div class="section3">${s3.join('')}</div>` : ''}
-    <div class="footnote">Print this page, have your child complete it on paper, then use the answer key above to check their work.</div>
+    <div class="footnote">Print this page, have your child complete it on paper, then use the answer key above to check their work.<br><b>WORKSHEET ${worksheetId}</b></div>
   `;
   document.getElementById('answerBox').innerHTML = `<b>Answer key — Worksheet ${worksheetId}</b><ol>${answers.map(a=>`<li>${a}</li>`).join('')}</ol>`;
 

@@ -73,6 +73,8 @@
     padding:10px 12px; font-family:inherit; font-size:.8rem; color:var(--ink); resize:vertical;}
   .answerkey-label{font-size:.75rem; color:var(--muted); margin:0 0 6px;}
   .result-card{margin-top:20px; background:var(--card); border-radius:18px; box-shadow:var(--shadow); padding:16px; display:none;}
+  .mismatch-warning{background:var(--yellow-soft); color:var(--ink); border-radius:14px; padding:12px 14px;
+    font-size:.8rem; line-height:1.6; margin-bottom:14px;}
   .result-photos{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:14px;}
   .result-photos a{display:block; border-radius:10px; overflow:hidden; aspect-ratio:3/4;}
   .result-photos img{width:100%; height:100%; object-fit:cover; display:block;}
@@ -169,6 +171,7 @@
       try { localStorage.setItem(usageKey(), String(getUsageCount() + 1)); } catch (e) {}
     }
     let editingKey = false;
+    let expectedWorksheetId = null;
     const atMonthlyLimit = getUsageCount() >= MAX_SUBMISSIONS_PER_MONTH;
     if (atMonthlyLimit) limitBanner.hidden = false;
 
@@ -177,6 +180,7 @@
       if (saved && saved.answers && saved.answers.length) {
         answerkeyInput.value = saved.answers.join('\n');
         hasAutoKey = true;
+        expectedWorksheetId = saved.worksheetId || null;
       }
     } catch (e) {}
 
@@ -310,6 +314,9 @@
       currentSubmittedFiles = submittedFiles;
       const marks = { true: ['✓','ok'], false: ['✗','no'], null: ['?','unsure'] };
       let html = '';
+      if (data.worksheetMismatch) {
+        html += `<div class="mismatch-warning">⚠️ 呢張相好似同套用緊嘅答案key唔係同一份卷，批改結果可能唔準確。如果係另一份卷，請撳「編輯」貼返啱嘅答案key。</div>`;
+      }
       if (submittedFiles && submittedFiles.length) {
         html += `<div class="result-photos">${submittedFiles.map((f, i) =>
           `<a href="${URL.createObjectURL(f)}" target="_blank"><img src="${URL.createObjectURL(f)}" alt="第 ${i + 1} 頁"></a>`
@@ -367,10 +374,16 @@
           data: await fileToBase64(f),
           mediaType: 'image/jpeg',
         })));
+        // Only ask the server to verify the worksheet ID when we're still
+        // using the auto-filled key as-is -- if the parent edited/pasted
+        // their own answer key (a different, non-generated paper), there is
+        // no expected ID to check against and doing so would just produce
+        // false "doesn't match" warnings.
+        const checkWorksheetId = (hasAutoKey && !editingKey) ? expectedWorksheetId : null;
         const res = await fetch('/api/grade', {
           method: 'POST',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ images, answerKey }),
+          body: JSON.stringify({ images, answerKey, expectedWorksheetId: checkWorksheetId }),
         });
         const data = await res.json();
         if (!res.ok) {
