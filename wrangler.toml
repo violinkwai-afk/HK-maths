@@ -10,3 +10,15 @@ binding = "ASSETS"
 binding = "ANTHROPIC_API_KEY"
 store_id = "50b964b41eeb46d3bd4be77e059d3324"
 secret_name = "Nn"
+
+# IMPORTANT -- this Worker auto-deploys from git, and Cloudflare's
+# dashboard-added bindings are NOT version-controlled: every new deployment
+# resets bindings to exactly what's declared in this file. RATE_LIMIT_KV was
+# only ever added via the dashboard, so it has been silently wiped by every
+# commit since -- confirmed 2026-09-17 by probing /api/grade with 20 rapid
+# malformed requests and getting zero 429s (should have rate-limited after
+# 15). Needs the real namespace id filled in below, then this must never be
+# bound via dashboard-only again.
+[[kv_namespaces]]
+binding = "RATE_LIMIT_KV"
+id = "8fab716bacfc44279350b85806d98701"
