@@ -11,6 +11,15 @@ binding = "ANTHROPIC_API_KEY"
 store_id = "50b964b41eeb46d3bd4be77e059d3324"
 secret_name = "Nn"
 
+# 2026-09-26: added for the OCR -> code -> AI rewrite (see worker.js's top
+# comment). Same store_id + secret_name as hk-homework-check's own
+# OPENROUTER_API_KEY binding -- reuses the ALREADY-CREATED secret value in
+# the shared Secrets Store, no new secret needed.
+[[secrets_store_secrets]]
+binding = "OPENROUTER_API_KEY"
+store_id = "50b964b41eeb46d3bd4be77e059d3324"
+secret_name = "OPENROUTER_API_KEY"
+
 # IMPORTANT -- this Worker auto-deploys from git, and Cloudflare's
 # dashboard-added bindings are NOT version-controlled: every new deployment
 # resets bindings to exactly what's declared in this file. RATE_LIMIT_KV was
