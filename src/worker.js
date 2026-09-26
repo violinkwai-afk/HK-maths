@@ -309,9 +309,6 @@ async function callMathOcr(images, openrouterKey) {
   const text = (choice.message && choice.message.content) || "";
   const { items, worksheetId } = parseMathOcrText(text);
   if (!items.length) {
-    // TEMPORARY (2026-09-26): log the raw model output to diagnose a
-    // real math_ocr_empty failure seen live -- remove once understood.
-    console.log(JSON.stringify({ event: "grade_ocr_empty_raw_debug", rawText: text.slice(0, 1000) }));
     throw { kind: "upstream_error", uiMessage: "改卷服務暫時無法使用，請稍後再試。", detail: "math_ocr_empty", status: 502 };
   }
   return { items, worksheetId, usage: data.usage || null };
