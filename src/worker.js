@@ -252,13 +252,16 @@ async function handleGrade(request, env) {
 // OCR_ONLY_PROMPT/callQwenOcrText. Also asked to transcribe any printed
 // "WORKSHEET <id>" text, which used to require a separate whole-page AI
 // judgement call to identify.
-const MATH_OCR_PROMPT = `你唔使判斷啱定錯，淨係負責抄低學生喺呢張數學工作紙相入面手寫嘅答案，一字不漏咁抄，唔好自己計數或者判斷。相有機會打橫/倒轉，先確認閱讀方向。學生成日用鉛筆寫字，筆跡好淺——要仔細睇清楚有冇淺色筆劃，睇唔清就填"?"。如果答題位置完全冇筆跡，就留空（唔好抄任何嘢），唔可以自己計個答案填返去。
+const MATH_OCR_PROMPT = `你唔使判斷啱定錯，淨係負責抄低學生喺呢張數學工作紙相入面手寫嘅答案，一字不漏咁抄，唔好自己計數或者判斷。相有機會打橫/倒轉，先確認閱讀方向。學生成日用鉛筆寫字，筆跡好淺——要仔細睇清楚有冇淺色筆劃，睇唔清就填"?"。
+
+**每一條印刷題號都一定要有返自己一行回覆，即使個題完全冇筆跡都好，唔可以因為冇筆跡就唔理嗰題、唔輸出佢——正確做法係「題號=」（等號後面留空，但個「題號=」本身一定要有）。** 唔可以自己計個答案填返去。
 
 相入面通常會有印刷嘅"WORKSHEET <編號>"字樣（喺page頂或底），如果見到，用「WORKSHEET=<編號>」呢個格式獨立一行回覆（搵唔到就唔好回覆呢一行，唔好老作一個編號）。
 
 其餘每一題回覆「題號=學生手寫答案」，用逗號分隔唔同題，題號跟返張相印刷嘅題號（例如"1)" "2a)" "3."）。
 
-唔好加任何其他文字、判斷、JSON。`;
+唔好加任何其他文字、判斷、JSON。例子（第2題冇筆跡）：
+1=15,2=,3=8`;
 
 async function callMathOcr(images, openrouterKey) {
   const body = {
