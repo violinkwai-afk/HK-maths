@@ -40,6 +40,23 @@ const GRADE_RATE_LIMIT = 15; // max /api/grade calls per IP per hour
 // one-line change here.
 const PRODUCTION_OCR_MODEL = "qwen/qwen3-vl-235b-a22b-instruct";
 
+// 2026-09-27: previously hardcoded as the literal string "claude-sonnet-5"
+// inline at each call site (2 places) -- extracted into its own constant,
+// same discipline as PRODUCTION_OCR_MODEL above and hk-homework-check's
+// OCR_TEXT_MODEL/PRODUCTION_OCR_MODEL split (see that project's TICKETS.md
+// Ticket 25/26 for why this isolation matters: a real model swap there
+// was a one-line rollback specifically because the model string lived in
+// exactly one place). Used for the real grading-judgment call
+// (compareWithAi) -- kept separate from WEAK_AREA_MODEL_* below even
+// though they currently share the same value, since they're different
+// tasks (grading judgment vs. low-stakes text summarization) and a
+// future swap of one should not silently also swap the other.
+const JUDGE_MODEL_CLAUDE = "claude-sonnet-5";
+// inferWeakAreas is explicitly low-stakes (see that function's own
+// comment) -- its two tiers get their own constants for the same reason.
+const WEAK_AREA_MODEL_OPENROUTER = "deepseek/deepseek-v4.1-flash";
+const WEAK_AREA_MODEL_CLAUDE = "claude-sonnet-5";
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -436,7 +453,7 @@ ${itemsText}
   }
   if (anthropicKey) {
     try {
-      const r = await callClaudeJson(images, prompt, anthropicKey, "claude-sonnet-5", 800);
+      const r = await callClaudeJson(images, prompt, anthropicKey, JUDGE_MODEL_CLAUDE, 800);
       return { results: r.parsed.results || [], usage: r.usage, model: "sonnet" };
     } catch (e) {
       console.log(JSON.stringify({ event: "grade_ai_compare_sonnet_failed", error: (e && (e.detail || e.message)) || String(e) }));
@@ -455,13 +472,13 @@ ${wrongLines.join("\n")}
 {"weakAreas":["弱項1","弱項2"]}`;
   try {
     if (openrouterKey) {
-      const r = await callOpenRouterJson([], prompt, openrouterKey, "deepseek/deepseek-v4.1-flash", 300);
+      const r = await callOpenRouterJson([], prompt, openrouterKey, WEAK_AREA_MODEL_OPENROUTER, 300);
       return r.parsed.weakAreas || [];
     }
   } catch (e) { /* best-effort, never blocks the real grading result */ }
   try {
     if (anthropicKey) {
-      const r = await callClaudeJson([], prompt, anthropicKey, "claude-sonnet-5", 300);
+      const r = await callClaudeJson([], prompt, anthropicKey, WEAK_AREA_MODEL_CLAUDE, 300);
       return r.parsed.weakAreas || [];
     }
   } catch (e) { /* best-effort */ }
